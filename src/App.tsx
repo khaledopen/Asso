@@ -77,7 +77,13 @@ function Footer() {
   </footer>;
 }
 
-function ScrollToTop(){const {pathname}=useLocation();useEffect(()=>window.scrollTo({top:0,behavior:"smooth"}),[pathname]);return null}
+function ScrollToTop(){
+  const {pathname}=useLocation();
+  useEffect(()=>{
+    window.scrollTo({top:0,behavior:"smooth"});
+  },[pathname]);
+  return null;
+}
 function Reveal({children,className=""}:{children:React.ReactNode,className?:string}){return <motion.div initial={{opacity:0,y:22}} whileInView={{opacity:1,y:0}} viewport={{once:true,margin:"-80px"}} transition={{duration:.55}} className={className}>{children}</motion.div>}
 function SectionTitle({eyebrow,title,text}:{eyebrow?:string,title:string,text?:string}){return <div className="mx-auto mb-10 max-w-2xl text-center">{eyebrow&&<p className="eyebrow">{eyebrow}</p>}<h2 className="section-title">{title}</h2>{text&&<p className="mt-4 text-stone-600">{text}</p>}</div>}
 
