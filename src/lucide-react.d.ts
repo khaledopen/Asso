@@ -9,4 +9,5 @@ declare module "lucide-react" {
   export const X: Icon; export const ZoomIn: Icon; export const ShieldCheck: Icon;
   export const Accessibility: Icon; export const Star: Icon; export const PartyPopper: Icon;
   export const ExternalLink: Icon; export const MapPin: Icon; export const Share2: Icon;
+  export const Play: Icon;
 }

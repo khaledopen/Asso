@@ -5,9 +5,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowRight, ChevronLeft, ChevronRight, Menu, Search, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Menu, Play, Search, ShieldCheck, X } from "lucide-react";
 
-const OFFICIAL = { logo: "/official/logo-tissem.jpg", mallette: "/official/mallette-handicap.jpg", zumba: "/official/handi-zumba.jpg", team: "/official/equipe-stagiaires.jpg" };
+const OFFICIAL = {
+  logo: "/official/logo-tissem.jpg",
+  mallette: "/official/mallette-handicap.jpg",
+  zumba: "/official/handi-zumba.jpg",
+  team: "/official/equipe-stagiaires.jpg",
+  salonVideo: "/official/salon-solidaire.mp4",
+};
 const INSTAGRAM_URL = "https://www.instagram.com/un_sourire_pour_tissem";
 const HELLOASSO_URL = "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
 const remote = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1400&q=82`;
@@ -20,10 +26,47 @@ const actions = [
 ];
 
 const news = [
-  { slug:"mallette-handicap-novembre", date:"06.11.2026", category:"Projet", title:"La Mallette Handi’Cap prend forme", excerpt:"Un outil visuel et sensoriel autour de l’inclusion, de l’autonomie et du bien-être.", image:OFFICIAL.mallette },
-  { slug:"accueil-stagiaires", date:"19.10.2026", category:"Vie associative", title:"Transmettre aussi aux jeunes", excerpt:"L’association accueille des stagiaires et leur fait découvrir le fonctionnement d’un projet solidaire.", image:OFFICIAL.team },
-  { slug:"handi-zumba-octobre", date:"17.10.2026", category:"Activité", title:"Séance découverte Handi’Zumba à Orléans", excerpt:"Bouger, s’amuser et se dépasser ensemble avec la coach Nassima à L’Argonaute.", image:OFFICIAL.zumba },
-  { slug:"vivre-ensemble", date:"30.09.2026", category:"Rencontre", title:"Tous différents, tous ensemble", excerpt:"Des sorties, des activités adaptées et des temps collectifs pour parler d’inclusion autrement.", image:"/actions/action-052.jpg" },
+  {
+    slug: "salon-solidaire",
+    date: "10.11.2026",
+    category: "Événement",
+    title: "Au cœur du Salon Solidaire : rencontres et partage",
+    excerpt: "Retour en vidéo et en images sur notre présence au Salon Solidaire : une journée d’échanges, de sensibilisation et d’énergie collective.",
+    image: "/actions/action-060.jpg",
+    video: OFFICIAL.salonVideo,
+  },
+  {
+    slug: "mallette-handicap-novembre",
+    date: "06.11.2026",
+    category: "Projet",
+    title: "La Mallette Handi’Cap prend forme",
+    excerpt: "Un outil visuel et sensoriel autour de l’inclusion, de l’autonomie et du bien-être.",
+    image: OFFICIAL.mallette,
+  },
+  {
+    slug: "accueil-stagiaires",
+    date: "19.10.2026",
+    category: "Vie associative",
+    title: "Transmettre aussi aux jeunes",
+    excerpt: "L’association accueille des stagiaires et leur fait découvrir le fonctionnement d’un projet solidaire.",
+    image: OFFICIAL.team,
+  },
+  {
+    slug: "handi-zumba-octobre",
+    date: "17.10.2026",
+    category: "Activité",
+    title: "Séance découverte Handi’Zumba à Orléans",
+    excerpt: "Bouger, s’amuser et se dépasser ensemble avec la coach Nassima à L’Argonaute.",
+    image: OFFICIAL.zumba,
+  },
+  {
+    slug: "vivre-ensemble",
+    date: "30.09.2026",
+    category: "Rencontre",
+    title: "Tous différents, tous ensemble",
+    excerpt: "Des sorties, des activités adaptées et des temps collectifs pour parler d’inclusion autrement.",
+    image: "/actions/action-052.jpg",
+  },
 ];
 
 const nav = [["/","Accueil"],["/association","L’association"],["/actions","Nos actions"],["/actualites","Actualités"],["/galerie","Galerie"],["/contact","Contact"]];
@@ -141,7 +184,14 @@ function Home(){
             <Reveal key={item.slug}>
               <article className="news-card">
                 <Link to={`/actualites/${item.slug}`}>
-                  <img src={item.image} alt="" loading="lazy"/>
+                  <div className="card-media">
+                    <img src={item.image} alt={item.title} loading="lazy"/>
+                    {item.video && (
+                      <span className="media-badge">
+                        <Play size={12} fill="currentColor"/> Vidéo
+                      </span>
+                    )}
+                  </div>
                   <span className="news-meta">{item.date} — {item.category}</span>
                   <h3>{item.title}</h3>
                   <p>{item.excerpt}</p>
@@ -253,7 +303,14 @@ function Actualites(){
           {filtered.map(n=>(
             <article key={n.slug}>
               <Link to={`/actualites/${n.slug}`}>
-                <img src={n.image} alt={n.title} loading="lazy"/>
+                <div className="card-media">
+                  <img src={n.image} alt={n.title} loading="lazy"/>
+                  {n.video && (
+                    <span className="media-badge">
+                      <Play size={12} fill="currentColor"/> Vidéo
+                    </span>
+                  )}
+                </div>
                 <span>{n.date} — {n.category}</span>
                 <h2>{n.title}</h2>
                 <p>{n.excerpt}</p>
@@ -271,6 +328,7 @@ function NewsDetail(){
   if(!n)return <NotFound/>;
   const isZumba = n.slug === "handi-zumba-octobre";
   const isPoster = isZumba || n.slug === "mallette-handicap-novembre";
+  const isSalon = n.slug === "salon-solidaire";
   return (
     <main>
       <PageHero index={n.date} title={n.title} lede={n.category}/>
@@ -281,15 +339,69 @@ function NewsDetail(){
           </Link>
         </div>
         <article className="article-page">
-          <img
-            src={n.image}
-            alt={isZumba ? "Affiche officielle Handi'Zumba - Un sourire pour Tissem" : n.title}
-            className={isPoster ? "detail-poster" : "detail-photo"}
-          />
+          {n.video ? (
+            <div className="detail-media-column">
+              <div className="detail-video-wrapper">
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={n.image}
+                  className="detail-video"
+                >
+                  <source src={n.video} type="video/mp4" />
+                  Votre navigateur ne supporte pas la lecture de vidéos MP4.
+                </video>
+                <div className="video-caption">
+                  <Play size={14} fill="currentColor" />
+                  <span>Vidéo : Au stand de l’association au Salon Solidaire</span>
+                </div>
+              </div>
+              {isSalon && (
+                <div className="detail-photo-substrip">
+                  <img src="/actions/action-061.jpg" alt="Atelier sensoriel au stand du Salon Solidaire" loading="lazy" />
+                  <img src="/actions/action-059.jpg" alt="L'équipe de bénévoles mobilisée au salon" loading="lazy" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <img
+              src={n.image}
+              alt={isZumba ? "Affiche officielle Handi'Zumba - Un sourire pour Tissem" : n.title}
+              className={isPoster ? "detail-poster" : "detail-photo"}
+            />
+          )}
           <div>
-            <Eyebrow>Actualité de l’association</Eyebrow>
+            <Eyebrow>Actualité de l’association · {n.category}</Eyebrow>
             <p className="article-lead">{n.excerpt}</p>
-            {isZumba ? (
+            {isSalon ? (
+              <>
+                <p>
+                  L’association <strong>Un sourire pour Tissem et tous les enfants</strong> a participé avec cœur et enthousiasme au <strong>Salon Solidaire</strong>. Cet événement a été une opportunité majeure de faire connaître nos initiatives, d’échanger avec les familles et de renforcer les liens avec les acteurs associatifs et solidaires de notre territoire.
+                </p>
+                <div className="fact-note" style={{marginTop:"20px",background:"var(--blush)",padding:"18px 22px",borderRadius:"0 12px 12px 0"}}>
+                  <p style={{fontSize:"15px",fontWeight:700,color:"var(--deep)",marginBottom:"8px"}}>Les temps forts de notre stand :</p>
+                  <ul style={{display:"grid",gap:"6px",fontSize:"13.5px",lineHeight:1.5,paddingLeft:"18px",color:"var(--ink)"}}>
+                    <li><strong>Sensibilisation ludique et immersive :</strong> Démonstration active des boîtes sensorielles et des modules de la <em>Mallette Handi’Cap</em> (sensibilisation aux handicaps moteurs et à l’autisme).</li>
+                    <li><strong>Rencontres & écoute des familles :</strong> Présentation de nos activités hebdomadaires et mensuelles (séances Handi’Zumba 100% gratuites, sorties nature et sport adapté).</li>
+                    <li><strong>Mobilisation de la jeunesse :</strong> Présence active de nos stagiaires et jeunes bénévoles pour accueillir et renseigner les visiteurs avec bienveillance.</li>
+                    <li><strong>Partage et synergie locale :</strong> Rencontres enrichissantes avec d’autres associations du Loiret pour imaginer de futures collaborations solidaires.</li>
+                  </ul>
+                </div>
+                <h3 style={{fontSize:"20px",marginTop:"26px",marginBottom:"10px",color:"var(--ink)"}}>Revivez l’ambiance en vidéo</h3>
+                <p>
+                  Retrouvez dans la vidéo ci-contre l’ambiance chaleureuse de notre stand, la curiosité des visiteurs pour nos outils pédagogiques et le dynamisme de notre équipe mobilisée tout au long de la journée.
+                </p>
+                <p style={{marginTop:"12px"}}>
+                  Chaque rencontre sur le terrain contribue à faire évoluer les regards sur le handicap et à ouvrir les portes d’une société plus inclusive pour tous les enfants.
+                </p>
+                <div style={{display:"flex",gap:"16px",alignItems:"center",marginTop:"28px",flexWrap:"wrap"}}>
+                  <Link to="/faire-un-don" className="solid-button">Soutenir nos actions ↗</Link>
+                  <ArrowLink to="/actions/mallette-handicap">Découvrir la Mallette Handi’Cap</ArrowLink>
+                  <ArrowLink to="/contact">Rejoindre l’équipe</ArrowLink>
+                </div>
+              </>
+            ) : isZumba ? (
               <>
                 <p>
                   L’association <strong>Un sourire pour Tissem et tous les enfants</strong> organise des séances découvertes <strong>Handi’Zumba</strong> animées par la coach <strong>Nassima</strong> à <strong>L’Argonaute d’Orléans</strong>.
