@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, NavLink, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -13,7 +14,7 @@ const remote = (id: string) => `https://images.unsplash.com/${id}?auto=format&fi
 
 const actions = [
   { slug:"mallette-handicap", number:"01", title:"Mallette Handi’Cap", kicker:"Inclusion · Autonomie · Bien-être", image:OFFICIAL.mallette, short:"Une mallette pensée pour sensibiliser au handicap et ouvrir, concrètement, les portes de l’inclusion.", detail:"La Mallette Handi’Cap rassemble des supports ludiques, sensoriels et pédagogiques. Elle permet d’aborder les différences avec les enfants, de mieux comprendre certaines situations de handicap et d’encourager l’autonomie." },
-  { slug:"handi-zumba", number:"02", title:"Handi’Zumba", kicker:"Bouger · S’amuser · Se dépasser", image:OFFICIAL.zumba, short:"Une activité gratuite, inclusive et joyeuse, conçue pour les enfants en situation de handicap.", detail:"Handi’Zumba transforme la danse en espace de confiance, de plaisir et de convivialité. Chacun participe à son rythme, dans un cadre accueillant et accessible." },
+  { slug:"handi-zumba", number:"02", title:"Handi’Zumba", kicker:"Bouger · S’amuser · Se dépasser", image:"/actions/action-020.jpg", short:"Une activité gratuite, inclusive et joyeuse, conçue pour les enfants en situation de handicap.", detail:"Handi’Zumba transforme la danse en espace de confiance, de plaisir et de convivialité. Chacun participe à son rythme, dans un cadre accueillant et accessible." },
   { slug:"sport-solidaire", number:"03", title:"Sport solidaire", kicker:"Confiance · Énergie · Partage", image:"/actions/action-051.jpg", short:"Des séances, sorties et défis collectifs pour créer du lien et rendre l’activité plus accessible.", detail:"L’association développe des rendez-vous sportifs conviviaux pour faire du mouvement un outil de bien-être, de confiance et d’inclusion." },
   { slug:"sensibilisation", number:"04", title:"Rencontres & sensibilisation", kicker:"Écouter · Comprendre · Rassembler", image:"/actions/action-059.jpg", short:"Des ateliers, événements et rencontres pour faire évoluer les regards et soutenir les familles.", detail:"Forums, jeux de sensibilisation, rencontres associatives et accueil de jeunes : l’association crée des occasions concrètes de dialoguer autour du handicap et du vivre-ensemble." },
 ];
@@ -21,7 +22,7 @@ const actions = [
 const news = [
   { slug:"mallette-handicap-novembre", date:"06.11.2026", category:"Projet", title:"La Mallette Handi’Cap prend forme", excerpt:"Un outil visuel et sensoriel autour de l’inclusion, de l’autonomie et du bien-être.", image:OFFICIAL.mallette },
   { slug:"accueil-stagiaires", date:"19.10.2026", category:"Vie associative", title:"Transmettre aussi aux jeunes", excerpt:"L’association accueille des stagiaires et leur fait découvrir le fonctionnement d’un projet solidaire.", image:OFFICIAL.team },
-  { slug:"handi-zumba-octobre", date:"17.10.2026", category:"Activité", title:"Une séance Handi’Zumba à Orléans", excerpt:"Danser, prendre confiance et partager un moment convivial dans un cadre inclusif.", image:OFFICIAL.zumba },
+  { slug:"handi-zumba-octobre", date:"17.10.2026", category:"Activité", title:"Une séance Handi’Zumba à Orléans", excerpt:"Danser, prendre confiance et partager un moment convivial dans un cadre inclusif.", image:"/actions/action-022.jpg" },
   { slug:"vivre-ensemble", date:"30.09.2026", category:"Rencontre", title:"Tous différents, tous ensemble", excerpt:"Des sorties, des activités adaptées et des temps collectifs pour parler d’inclusion autrement.", image:"/actions/action-052.jpg" },
 ];
 
@@ -58,9 +59,87 @@ function ActionDetail(){const {slug}=useParams();const a=actions.find(x=>x.slug=
 function Actualites(){const [q,setQ]=useState("");const [cat,setCat]=useState("Toutes");const cats=["Toutes",...new Set(news.map(n=>n.category))];const filtered=useMemo(()=>news.filter(n=>(cat==="Toutes"||n.category===cat)&&`${n.title} ${n.excerpt}`.toLowerCase().includes(q.toLowerCase())),[q,cat]);return <main><PageHero index="03" title="La vie de l’association." lede="Actions, rencontres, ateliers : des nouvelles ancrées dans le quotidien."/><section className="news-page"><div className="filter-bar"><label><Search size={18}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher"/><span className="sr-only">Rechercher une actualité</span></label><div>{cats.map(c=><button key={c} onClick={()=>setCat(c)} className={cat===c?"active":""}>{c}</button>)}</div></div><div className="journal-grid">{filtered.map(n=><article key={n.slug}><Link to={`/actualites/${n.slug}`}><img src={n.image} alt=""/><span>{n.date} — {n.category}</span><h2>{n.title}</h2><p>{n.excerpt}</p></Link></article>)}</div></section></main>}
 function NewsDetail(){const {slug}=useParams();const n=news.find(x=>x.slug===slug);if(!n)return <NotFound/>;return <main><PageHero index={n.date} title={n.title} lede={n.category}/><article className="article-page"><img src={n.image} alt=""/><div><Eyebrow>Actualité de l’association</Eyebrow><p className="article-lead">{n.excerpt}</p><p>Cette actualité reprend une action publiée par l’association. Pour les prochaines dates et les modalités à jour, contactez directement l’équipe.</p><ArrowLink to="/contact">Contacter l’association</ArrowLink></div></article></main>}
 
-const actionGallery=Array.from({length:75},(_,index)=>{const number=index+1;const category=number<=40?"Événement solidaire":number<=52?"Sorties & loisirs":number<=65?"Ateliers & rencontres":"Sensibilisation";return{src:`/actions/action-${String(number).padStart(3,"0")}.jpg`,alt:`Action de l’association — ${category.toLowerCase()}`,label:category}});
-const gallery=[{src:OFFICIAL.mallette,alt:"Présentation de la Mallette Handi’Cap",label:"Mallette Handi’Cap"},{src:OFFICIAL.zumba,alt:"Affiche officielle Handi’Zumba",label:"Handi’Zumba"},...actionGallery];
-function Galerie(){const [selected,setSelected]=useState<number|null>(null);const [category,setCategory]=useState("Toutes");const categories=["Toutes","Mallette Handi’Cap","Handi’Zumba","Événement solidaire","Sorties & loisirs","Ateliers & rencontres","Sensibilisation"];const shown=category==="Toutes"?gallery:gallery.filter(item=>item.label===category);return <main><PageHero index="04" title="Des moments, pas une vitrine." lede="Les actions, sorties, ateliers et rencontres qui font vivre l’association, en images."/><section className="gallery-section"><div className="gallery-filters">{categories.map(item=><button key={item} className={category===item?"active":""} onClick={()=>{setCategory(item);setSelected(null)}}>{item}</button>)}</div><div className="gallery-grid">{shown.map((g,i)=><motion.button key={g.src} onClick={()=>setSelected(i)} className={i%11===0?"wide":""} initial={{opacity:0,y:22}} whileInView={{opacity:1,y:0}} viewport={{once:true,margin:"-40px"}} transition={{duration:.5,delay:Math.min((i%8)*.045,.3)}}><img src={g.src} alt={g.alt} loading="lazy"/><span>{g.label}</span></motion.button>)}</div></section><AnimatePresence>{selected!==null&&<motion.div className="lightbox" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} role="dialog" aria-modal="true"><button className="close" onClick={()=>setSelected(null)} aria-label="Fermer"><X/></button><button onClick={()=>setSelected((selected-1+shown.length)%shown.length)} aria-label="Précédente"><ChevronLeft/></button><motion.figure key={shown[selected].src} initial={{opacity:0,scale:.97}} animate={{opacity:1,scale:1}}><img src={shown[selected].src} alt={shown[selected].alt}/><figcaption>{shown[selected].label}</figcaption></motion.figure><button onClick={()=>setSelected((selected+1)%shown.length)} aria-label="Suivante"><ChevronRight/></button></motion.div>}</AnimatePresence></main>}
+const excludedGalleryImages = new Set([1, 2, 3, 4, 5, 6, 13, 40, 41]);
+const gallery = Array.from({length:75},(_,index)=>{
+  const number=index+1;
+  if(excludedGalleryImages.has(number)) return null;
+  const category=number<=26?"Événements & fêtes":number<=39?"Moments partagés":number<=52?"Sorties & loisirs":"Ateliers & rencontres";
+  return {src:`/actions/action-${String(number).padStart(3,"0")}.jpg`,alt:`Moment partagé de l’association — ${category.toLowerCase()}`,label:category};
+}).filter((item): item is {src:string,alt:string,label:string}=>item!==null);
+
+function Galerie(){
+  const [selected,setSelected]=useState<number|null>(null);
+  const [category,setCategory]=useState("Toutes");
+  const categories=["Toutes","Événements & fêtes","Moments partagés","Sorties & loisirs","Ateliers & rencontres"];
+  const shown=useMemo(()=>category==="Toutes"?gallery:gallery.filter(item=>item.label===category),[category]);
+
+  useEffect(()=>{
+    if(selected===null) return;
+    const onKey=(e:KeyboardEvent)=>{
+      if(e.key==="Escape") setSelected(null);
+      if(e.key==="ArrowLeft") setSelected(prev=>prev!==null?(prev-1+shown.length)%shown.length:null);
+      if(e.key==="ArrowRight") setSelected(prev=>prev!==null?(prev+1)%shown.length:null);
+    };
+    window.addEventListener("keydown",onKey);
+    document.body.style.overflow="hidden";
+    return ()=>{
+      window.removeEventListener("keydown",onKey);
+      document.body.style.overflow="";
+    };
+  },[selected,shown.length]);
+
+  return (
+    <main>
+      <PageHero index="04" title="Des moments, pas une vitrine." lede="Les actions, sorties, ateliers et rencontres qui font vivre l’association, en images."/>
+      <section className="gallery-section">
+        <div className="gallery-filters">
+          {categories.map(item=><button key={item} type="button" className={category===item?"active":""} onClick={()=>{setCategory(item);setSelected(null)}}>{item}</button>)}
+        </div>
+        <div className="gallery-grid">
+          {shown.map((g,i)=>(
+            <motion.button
+              key={g.src}
+              type="button"
+              onClick={()=>setSelected(i)}
+              className={i%7===0?"wide":""}
+              initial={{opacity:0,y:20}}
+              whileInView={{opacity:1,y:0}}
+              viewport={{once:true,margin:"-40px"}}
+              transition={{duration:.45,delay:Math.min((i%6)*.04,.24)}}
+            >
+              <img src={g.src} alt={g.alt} loading="lazy"/>
+              <span>{g.label}</span>
+            </motion.button>
+          ))}
+        </div>
+      </section>
+      {typeof document!=="undefined"&&createPortal(
+        <AnimatePresence>
+          {selected!==null&&shown[selected]&&(
+            <motion.div
+              className="lightbox"
+              initial={{opacity:0}}
+              animate={{opacity:1}}
+              exit={{opacity:0}}
+              role="dialog"
+              aria-modal="true"
+              onClick={(e)=>{if(e.target===e.currentTarget) setSelected(null)}}
+            >
+              <button type="button" className="close" onClick={()=>setSelected(null)} aria-label="Fermer"><X size={26}/></button>
+              <button type="button" onClick={(e)=>{e.stopPropagation();setSelected((selected-1+shown.length)%shown.length)}} aria-label="Précédente"><ChevronLeft size={36}/></button>
+              <motion.figure key={shown[selected].src} initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{duration:.2}} onClick={e=>e.stopPropagation()}>
+                <img src={shown[selected].src} alt={shown[selected].alt}/>
+                <figcaption>{shown[selected].label}</figcaption>
+              </motion.figure>
+              <button type="button" onClick={(e)=>{e.stopPropagation();setSelected((selected+1)%shown.length)}} aria-label="Suivante"><ChevronRight size={36}/></button>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </main>
+  );
+}
 
 function Donation(){const [amount,setAmount]=useState("25 €");return <main><PageHero index="05" title="Soutenir une action concrète." lede="Votre générosité aide l’association à développer ses activités auprès des enfants et des familles."/><section className="donation-layout"><div><Eyebrow>À quoi sert votre soutien ?</Eyebrow><h2>Du matériel, des activités, des rencontres.</h2><p>Les dons permettent de préparer des outils adaptés, d’organiser des séances inclusives et d’accompagner les projets de l’association.</p><ul><li>Matériel sensoriel et pédagogique (Mallette Handi’Cap)</li><li>Activités sportives inclusives (Handi’Zumba, sport solidaire à L’Argonaute)</li><li>Actions de sensibilisation et accompagnement des familles</li></ul></div><div className="donation-panel"><span className="panel-label">Choisir un montant indicatif</span><div className="amounts">{["5 €","10 €","25 €","50 €","Libre"].map(a=><button key={a} className={amount===a?"active":""} onClick={()=>setAmount(a)}>{a}</button>)}</div>{amount==="Libre"&&<input inputMode="decimal" placeholder="Votre montant personnalisé (€)"/>}<div className="secure-note"><ShieldCheck size={20}/><p><b>Collecte 100% sécurisée via HelloAsso.</b><br/>Plateforme reconnue dédiée aux associations françaises. Reçu fiscal émis automatiquement, aucune coordonnée bancaire sur ce site.</p></div><a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" className="solid-button full" style={{textAlign:"center",justifyContent:"center",textDecoration:"none"}}>Faire un don sur HelloAsso ({amount}) ↗</a><div style={{marginTop:"16px",textAlign:"center"}}><a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" className="text-button">Adhérer annuellement à l’association ↗</a></div></div></section></main>}
 
