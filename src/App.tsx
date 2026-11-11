@@ -569,9 +569,20 @@ const gallery = Array.from({length:75},(_,index)=>{
 function Galerie(){
   const [selected,setSelected]=useState<number|null>(null);
   const [category,setCategory]=useState("Toutes");
+  const [page,setPage]=useState(1);
   const [touchStartX,setTouchStartX]=useState<number|null>(null);
+  const itemsPerPage=12;
   const categories=["Toutes","Événements & fêtes","Moments partagés","Sorties & loisirs","Ateliers & rencontres"];
   const shown=useMemo(()=>category==="Toutes"?gallery:gallery.filter(item=>item.label===category),[category]);
+  const pageCount=Math.max(1,Math.ceil(shown.length/itemsPerPage));
+  const pageStart=(page-1)*itemsPerPage;
+  const paged=shown.slice(pageStart,pageStart+itemsPerPage);
+
+  const changePage=(nextPage:number)=>{
+    setPage(nextPage);
+    setSelected(null);
+    window.requestAnimationFrame(()=>document.querySelector(".gallery-section")?.scrollIntoView({behavior:"smooth",block:"start"}));
+  };
 
   useEffect(()=>{
     if(selected===null) return;
@@ -608,14 +619,14 @@ function Galerie(){
       <PageHero index="04" title="Des moments, pas une vitrine." lede="Les actions, sorties, ateliers et rencontres qui font vivre l’association, en images."/>
       <section className="gallery-section">
         <div className="gallery-filters">
-          {categories.map(item=><button key={item} type="button" className={category===item?"active":""} onClick={()=>{setCategory(item);setSelected(null)}}>{item}</button>)}
+          {categories.map(item=><button key={item} type="button" className={category===item?"active":""} onClick={()=>{setCategory(item);setPage(1);setSelected(null)}}>{item}</button>)}
         </div>
-        <div className="gallery-grid">
-          {shown.map((g,i)=>(
+        <div className="gallery-grid" aria-live="polite">
+          {paged.map((g,i)=>(
             <motion.button
               key={g.src}
               type="button"
-              onClick={()=>setSelected(i)}
+              onClick={()=>setSelected(pageStart+i)}
               className="gallery-card"
               initial={{opacity:0,y:20}}
               whileInView={{opacity:1,y:0}}
@@ -626,6 +637,11 @@ function Galerie(){
             </motion.button>
           ))}
         </div>
+        {pageCount>1&&<nav className="gallery-pagination" aria-label="Pagination de la galerie">
+          <button type="button" className="pagination-arrow" onClick={()=>changePage(page-1)} disabled={page===1} aria-label="Page précédente"><ChevronLeft size={18}/><span>Précédente</span></button>
+          <div>{Array.from({length:pageCount},(_,index)=>index+1).map(number=><button key={number} type="button" className={number===page?"active":""} onClick={()=>changePage(number)} aria-current={number===page?"page":undefined} aria-label={`Page ${number}`}>{number}</button>)}</div>
+          <button type="button" className="pagination-arrow" onClick={()=>changePage(page+1)} disabled={page===pageCount} aria-label="Page suivante"><span>Suivante</span><ChevronRight size={18}/></button>
+        </nav>}
       </section>
       {typeof document!=="undefined"&&createPortal(
         <AnimatePresence>
