@@ -230,7 +230,41 @@ function ActionDetail(){
   );
 }
 
-function Actualites(){const [q,setQ]=useState("");const [cat,setCat]=useState("Toutes");const cats=["Toutes",...new Set(news.map(n=>n.category))];const filtered=useMemo(()=>news.filter(n=>(cat==="Toutes"||n.category===cat)&&`${n.title} ${n.excerpt}`.toLowerCase().includes(q.toLowerCase())),[q,cat]);return <main><PageHero index="03" title="La vie de l’association." lede="Actions, rencontres, ateliers : des nouvelles ancrées dans le quotidien."/><section className="news-page"><div className="filter-bar"><label><Search size={18}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher"/><span className="sr-only">Rechercher une actualité</span></label><div>{cats.map(c=><button key={c} onClick={()=>setCat(c)} className={cat===c?"active":""}>{c}</button>)}</div></div><div className="journal-grid">{filtered.map(n=><article key={n.slug}><Link to={`/actualites/${n.slug}`}><img src={n.image} alt=""/><span>{n.date} — {n.category}</span><h2>{n.title}</h2><p>{n.excerpt}</p></Link></article>)}</div></section></main>}
+function Actualites(){
+  const [q,setQ]=useState("");
+  const [cat,setCat]=useState("Toutes");
+  const cats=["Toutes",...new Set(news.map(n=>n.category))];
+  const filtered=useMemo(()=>news.filter(n=>(cat==="Toutes"||n.category===cat)&&`${n.title} ${n.excerpt}`.toLowerCase().includes(q.toLowerCase())),[q,cat]);
+  return (
+    <main>
+      <PageHero index="03" title="La vie de l’association." lede="Actions, rencontres, ateliers : des nouvelles ancrées dans le quotidien."/>
+      <section className="news-page">
+        <div className="filter-bar">
+          <label>
+            <Search size={18}/>
+            <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher"/>
+            <span className="sr-only">Rechercher une actualité</span>
+          </label>
+          <div>
+            {cats.map(c=><button key={c} onClick={()=>setCat(c)} className={cat===c?"active":""}>{c}</button>)}
+          </div>
+        </div>
+        <div className="journal-grid">
+          {filtered.map(n=>(
+            <article key={n.slug}>
+              <Link to={`/actualites/${n.slug}`}>
+                <img src={n.image} alt={n.title} loading="lazy"/>
+                <span>{n.date} — {n.category}</span>
+                <h2>{n.title}</h2>
+                <p>{n.excerpt}</p>
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
 function NewsDetail(){
   const {slug}=useParams();
   const n=news.find(x=>x.slug===slug);
