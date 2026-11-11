@@ -47,16 +47,6 @@ export function MentionsLegales() {
           <p>
             <b>Lieu des activités régulières :</b> L’Argonaute, 73 boulevard Marie Stuart, 45100 Orléans
           </p>
-          <p>
-            <b>Compte Instagram officiel :</b>{" "}
-            <a
-              href="https://www.instagram.com/un_sourire_pour_tissem"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              @un_sourire_pour_tissem ↗
-            </a>
-          </p>
         </section>
 
         <section className="legal-section">
