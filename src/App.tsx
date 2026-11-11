@@ -129,7 +129,6 @@ function Home(){
       <section className="home-hero">
         <div className="home-hero-inner">
           <motion.div className="hero-copy" initial={{opacity:0,x:-35}} animate={{opacity:1,x:0}} transition={{duration:.8,ease:[.22,1,.36,1]}}>
-            <Eyebrow>Association créée dans le Loiret</Eyebrow>
             <h1>Ouvrir les portes de <em>l’inclusion.</em></h1>
             <p>Nous accompagnons les enfants extraordinaires et leurs familles avec des activités qui font bouger, apprendre, rencontrer et grandir.</p>
             <div className="hero-actions">
