@@ -16,6 +16,7 @@ const OFFICIAL = {
 };
 const INSTAGRAM_URL = "https://www.instagram.com/un_sourire_pour_tissem";
 const HELLOASSO_URL = "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
+const DONATION_URL = `${HELLOASSO_URL}/collectes/100000-euros-pour-faire-grandir-les-sourires`;
 const remote = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1400&q=82`;
 
 const actions = [
@@ -69,6 +70,41 @@ const news = [
   },
 ];
 
+const helloAssoActions = [
+  {
+    type: "Collecte en cours",
+    title: "100 000 € pour faire grandir les sourires",
+    description: "Une campagne pour financer un local associatif, des activités inclusives, du matériel adapté et des temps de répit pour les familles.",
+    image: "/actions/action-071.jpg",
+    url: DONATION_URL,
+    cta: "Soutenir la campagne",
+  },
+  {
+    type: "Événement terminé · 17 oct. 2026",
+    title: "Séance découverte Handi’Zumba",
+    description: "Une heure de danse accessible aux enfants en situation de handicap, pour bouger, se défouler et partager un moment joyeux.",
+    image: OFFICIAL.zumba,
+    url: `${HELLOASSO_URL}/evenements/seance-decouverte-handi-zumba`,
+    cta: "Voir la page officielle",
+  },
+  {
+    type: "Événement terminé · 11 oct. 2026",
+    title: "Séance découverte Zumba Kids",
+    description: "Un après-midi de danse, d’énergie et de plaisir proposé aux enfants de 7 à 8 ans à L’Argonaute d’Orléans.",
+    image: "/actions/action-051.jpg",
+    url: `${HELLOASSO_URL}/evenements/seance-decouverte-zumba-kids`,
+    cta: "Voir la page officielle",
+  },
+  {
+    type: "Événement terminé · 10 oct. 2026",
+    title: "Zumba, renforcement & stretching",
+    description: "Une séance découverte 100 % femmes réunissant Zumba, renforcement musculaire et stretching à L’Argonaute.",
+    image: "/actions/action-035.jpg",
+    url: `${HELLOASSO_URL}/evenements/seance-decouverte-zumba-et-stretching`,
+    cta: "Voir la page officielle",
+  },
+];
+
 const nav = [["/","Accueil"],["/association","L’association"],["/actions","Nos actions"],["/actualites","Actualités"],["/galerie","Galerie"],["/contact","Contact"]];
 
 function Mark({kind="smile"}:{kind?:"smile"|"spark"|"people"|"move"}){
@@ -85,7 +121,7 @@ function Header(){const [open,setOpen]=useState(false);const {pathname}=useLocat
 function Footer(){return <footer className="site-footer"><div className="footer-inner"><div className="footer-grid"><div><Logo/><p>Une association du Loiret (loi 1901) engagée depuis 2016 auprès des enfants en situation de handicap et de leurs familles.</p><p style={{marginTop:"10px",fontSize:"12px",color:"#aaa0a5"}}>RNA : W452013082 · SIREN : 895 052 363</p></div><div><span className="footer-label">Explorer</span>{nav.slice(1).map(([to,label])=><Link key={to} to={to}>{label}</Link>)}<Link to="/mentions-legales">Mentions légales</Link></div><div><span className="footer-label">Nous retrouver</span><p><b>Orléans et le Loiret</b><br/>Certaines activités ont lieu à L’Argonaute, 73 boulevard Marie Stuart, 45100 Orléans.</p><p>Informations : <a href="tel:+33617037095">06 17 03 70 95</a></p><p style={{marginTop:"12px"}}><a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" style={{color:"#ff86b7",fontSize:"13px",fontWeight:600}}>Page officielle HelloAsso ↗</a></p></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Un sourire pour Tissem</span><div><Link to="/mentions-legales" style={{color:"inherit"}}>Mentions légales & RGPD</Link></div><span>Inclusion · Autonomie · Bien-être</span></div></div></footer>}
 
 function ScrollToTop(){const {pathname}=useLocation();useEffect(()=>{window.scrollTo({top:0,behavior:"smooth"});},[pathname]);return null}
-function Reveal({children,className=""}:{children:React.ReactNode,className?:string}){return <motion.div className={className} initial={{opacity:0,y:34,filter:"blur(7px)"}} whileInView={{opacity:1,y:0,filter:"blur(0px)"}} viewport={{once:true,margin:"-70px"}} transition={{duration:.72,ease:[.22,1,.36,1]}}>{children}</motion.div>}
+function Reveal({children,className="",delay=0}:{children:React.ReactNode,className?:string,delay?:number}){return <motion.div className={className} initial={{opacity:0,y:34,filter:"blur(7px)"}} whileInView={{opacity:1,y:0,filter:"blur(0px)"}} viewport={{once:true,margin:"-70px"}} transition={{duration:.72,delay,ease:[.22,1,.36,1]}}>{children}</motion.div>}
 function Eyebrow({children}:{children:React.ReactNode}){return <p className="eyebrow"><span/> {children}</p>}
 function Intro({eyebrow,title,text}:{eyebrow:string,title:string,text?:string}){return <div className="section-intro"><Eyebrow>{eyebrow}</Eyebrow><h2>{title}</h2>{text&&<p>{text}</p>}</div>}
 function ArrowLink({to,children}:{to:string,children:React.ReactNode}){return <Link to={to} className="arrow-link">{children}<ArrowRight size={17}/></Link>}
@@ -654,7 +690,20 @@ function Galerie(){
   );
 }
 
-function Donation(){const [amount,setAmount]=useState("25 €");return <main><PageHero index="05" title="Soutenir une action concrète." lede="Votre générosité aide l’association à développer ses activités auprès des enfants et des familles."/><section className="donation-layout"><div><Eyebrow>À quoi sert votre soutien ?</Eyebrow><h2>Du matériel, des activités, des rencontres.</h2><p>Les dons permettent de préparer des outils adaptés, d’organiser des séances inclusives et d’accompagner les projets de l’association.</p><ul><li>Matériel sensoriel et pédagogique (Mallette Handi’Cap)</li><li>Activités sportives inclusives (Handi’Zumba, sport solidaire à L’Argonaute)</li><li>Actions de sensibilisation et accompagnement des familles</li></ul></div><div className="donation-panel"><span className="panel-label">Choisir un montant indicatif</span><div className="amounts">{["5 €","10 €","25 €","50 €","Libre"].map(a=><button key={a} className={amount===a?"active":""} onClick={()=>setAmount(a)}>{a}</button>)}</div>{amount==="Libre"&&<input inputMode="decimal" placeholder="Votre montant personnalisé (€)"/>}<div className="secure-note"><ShieldCheck size={20}/><p><b>Collecte 100% sécurisée via HelloAsso.</b><br/>Plateforme reconnue dédiée aux associations françaises. Reçu fiscal émis automatiquement, aucune coordonnée bancaire sur ce site.</p></div><a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" className="solid-button full" style={{textAlign:"center",justifyContent:"center",textDecoration:"none"}}>Faire un don sur HelloAsso ({amount}) ↗</a><div style={{marginTop:"16px",textAlign:"center"}}><a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" className="text-button">Adhérer annuellement à l’association ↗</a></div></div></section></main>}
+function Donation(){
+  const [amount,setAmount]=useState("25 €");
+  return <main>
+    <PageHero index="05" title="Soutenir une action concrète." lede="Votre générosité aide l’association à développer ses activités auprès des enfants et des familles."/>
+    <Reveal><section className="donation-layout">
+      <div><Eyebrow>À quoi sert votre soutien ?</Eyebrow><h2>Du matériel, des activités, des rencontres.</h2><p>Les dons permettent de préparer des outils adaptés, d’organiser des séances inclusives et d’accompagner les projets de l’association.</p><ul><li>Matériel sensoriel et pédagogique (Mallette Handi’Cap)</li><li>Activités sportives inclusives (Handi’Zumba, sport solidaire à L’Argonaute)</li><li>Actions de sensibilisation et accompagnement des familles</li></ul></div>
+      <div className="donation-panel"><span className="panel-label">Choisir un montant indicatif</span><div className="amounts">{["5 €","10 €","25 €","50 €","Libre"].map(a=><button key={a} className={amount===a?"active":""} onClick={()=>setAmount(a)}>{a}</button>)}</div>{amount==="Libre"&&<input inputMode="decimal" placeholder="Votre montant personnalisé (€)"/>}<div className="secure-note"><ShieldCheck size={20}/><p><b>Collecte sécurisée sur HelloAsso.</b><br/>Le paiement et les coordonnées bancaires sont entièrement gérés sur la plateforme officielle.</p></div><a href={DONATION_URL} target="_blank" rel="noopener noreferrer" className="solid-button full" style={{textAlign:"center",justifyContent:"center",textDecoration:"none"}}>Continuer sur HelloAsso ({amount}) <ArrowRight size={17}/></a><div style={{marginTop:"16px",textAlign:"center"}}><a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" className="text-button">Découvrir le profil de l’association ↗</a></div></div>
+    </section></Reveal>
+    <section className="helloasso-events">
+      <Reveal><div className="events-heading"><div><Eyebrow>Sur HelloAsso</Eyebrow><h2>Les campagnes et événements de l’association.</h2></div><p>Chaque carte ouvre la page officielle correspondante. Les événements passés restent visibles comme témoignage des actions menées.</p></div></Reveal>
+      <div className="event-grid">{helloAssoActions.map((item,index)=><Reveal key={item.url} delay={index*.06}><motion.a className="event-card" href={item.url} target="_blank" rel="noopener noreferrer" whileHover={{y:-7}} transition={{duration:.25}}><div className="event-card-media"><img src={item.image} alt="" loading="lazy"/><span>{item.type}</span></div><div className="event-card-copy"><h3>{item.title}</h3><p>{item.description}</p><b>{item.cta} <ArrowRight size={16}/></b></div></motion.a></Reveal>)}</div>
+    </section>
+  </main>
+}
 
 const schema=z.object({name:z.string().min(2,"Indiquez votre nom."),email:z.string().email("Email invalide."),subject:z.string().min(3,"Précisez le sujet."),message:z.string().min(10,"Écrivez au moins 10 caractères."),consent:z.literal(true,{message:"Votre accord est nécessaire."})});type FormData=z.infer<typeof schema>;
 function Contact(){const [data,setData]=useState<FormData|null>(null);const {register,handleSubmit,formState:{errors}}=useForm<FormData>({resolver:zodResolver(schema)});return <main><PageHero index="06" title="Parlons de votre idée." lede="Une question sur une activité, une proposition de partenariat ou l’envie de devenir bénévole ?"/><section className="contact-layout"><div><Eyebrow>Contact & coordonnées</Eyebrow><h2>Nous sommes basés dans le Loiret.</h2><p>Pour les informations sur les activités et inscriptions :</p><a className="contact-phone" href="tel:+33617037095">06 17 03 70 95</a><p className="venue"><b>Lieu de certaines activités</b><br/>L’Argonaute<br/>73 boulevard Marie Stuart<br/>45100 Orléans</p><p className="venue" style={{marginTop:"18px"}}><b>Siège social</b><br/>48 Rue de Monteloup<br/>45380 La Chapelle-Saint-Mesmin</p></div><form onSubmit={handleSubmit(val=>setData(val))} noValidate>{[["name","Nom complet","text"],["email","Adresse email","email"],["subject","Sujet","text"]].map(([key,label,type])=><label key={key}><span>{label}</span><input type={type} {...register(key as keyof FormData)}/>{errors[key as keyof FormData]&&<small>{errors[key as keyof FormData]?.message}</small>}</label>)}<label><span>Votre message</span><textarea rows={5} {...register("message")}/>{errors.message&&<small>{errors.message.message}</small>}</label><label className="consent"><input type="checkbox" {...register("consent")}/><span>J’accepte que mes informations soient utilisées pour répondre à ma demande.</span></label>{errors.consent&&<small>{errors.consent.message}</small>}<button className="solid-button" type="submit">Préparer le message <ArrowRight size={17}/></button>{data&&<div className="form-notice" style={{borderRadius:"8px",lineHeight:1.6}}><p><b>Votre message est prêt !</b></p><p style={{fontSize:"12px",marginTop:"6px"}}>Cliquez ci-dessous pour l'envoyer directement via votre application de messagerie :</p><a href={`mailto:contact@un-sourire-pour-tissem.fr?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(`De : ${data.name} (${data.email})\n\n${data.message}`)}`} className="arrow-link" style={{marginTop:"10px",color:"var(--deep)"}}>Ouvrir ma messagerie pour envoyer ↗</a></div>}</form></section></main>}
