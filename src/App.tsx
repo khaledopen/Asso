@@ -504,6 +504,7 @@ const gallery = Array.from({length:75},(_,index)=>{
 function Galerie(){
   const [selected,setSelected]=useState<number|null>(null);
   const [category,setCategory]=useState("Toutes");
+  const [touchStartX,setTouchStartX]=useState<number|null>(null);
   const categories=["Toutes","Événements & fêtes","Moments partagés","Sorties & loisirs","Ateliers & rencontres"];
   const shown=useMemo(()=>category==="Toutes"?gallery:gallery.filter(item=>item.label===category),[category]);
 
@@ -521,6 +522,21 @@ function Galerie(){
       document.body.style.overflow="";
     };
   },[selected,shown.length]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const distance = touchStartX - e.changedTouches[0].clientX;
+    if (distance > 45) {
+      setSelected(prev=>prev!==null?(prev+1)%shown.length:null);
+    } else if (distance < -45) {
+      setSelected(prev=>prev!==null?(prev-1+shown.length)%shown.length:null);
+    }
+    setTouchStartX(null);
+  };
 
   return (
     <main>
@@ -557,13 +573,49 @@ function Galerie(){
               role="dialog"
               aria-modal="true"
               onClick={(e)=>{if(e.target===e.currentTarget) setSelected(null)}}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
             >
-              <button type="button" className="close" onClick={()=>setSelected(null)} aria-label="Fermer"><X size={26}/></button>
-              <button type="button" onClick={(e)=>{e.stopPropagation();setSelected((selected-1+shown.length)%shown.length)}} aria-label="Précédente"><ChevronLeft size={36}/></button>
-              <motion.figure key={shown[selected].src} initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{duration:.2}} onClick={e=>e.stopPropagation()}>
+              <div className="lightbox-topbar">
+                <span className="lightbox-counter">{selected + 1} / {shown.length}</span>
+                <button
+                  type="button"
+                  className="lightbox-btn lightbox-close"
+                  onClick={()=>setSelected(null)}
+                  aria-label="Fermer la vue agrandie"
+                >
+                  <X size={24}/>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="lightbox-btn lightbox-prev"
+                onClick={(e)=>{e.stopPropagation();setSelected((selected-1+shown.length)%shown.length)}}
+                aria-label="Photo précédente"
+              >
+                <ChevronLeft size={30}/>
+              </button>
+
+              <motion.figure
+                key={shown[selected].src}
+                className="lightbox-figure"
+                initial={{opacity:0,scale:.96}}
+                animate={{opacity:1,scale:1}}
+                transition={{duration:.2}}
+                onClick={e=>e.stopPropagation()}
+              >
                 <img src={shown[selected].src} alt={shown[selected].alt}/>
               </motion.figure>
-              <button type="button" onClick={(e)=>{e.stopPropagation();setSelected((selected+1)%shown.length)}} aria-label="Suivante"><ChevronRight size={36}/></button>
+
+              <button
+                type="button"
+                className="lightbox-btn lightbox-next"
+                onClick={(e)=>{e.stopPropagation();setSelected((selected+1)%shown.length)}}
+                aria-label="Photo suivante"
+              >
+                <ChevronRight size={30}/>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>,

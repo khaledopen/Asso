@@ -1141,60 +1141,114 @@ blockquote {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: rgba(18, 13, 16, 0.96);
-  display: grid;
-  grid-template-columns: auto minmax(0, 960px) auto;
+  background: rgba(14, 10, 13, 0.96);
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  padding: 30px;
+  padding: 24px;
   cursor: pointer;
+  touch-action: pan-y;
+  user-select: none;
 }
-.lightbox > button {
-  border: 0;
-  background: rgba(255, 255, 255, 0.14);
+.lightbox-topbar {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  pointer-events: none;
+}
+.lightbox-counter {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: rgba(30, 24, 28, 0.7);
+  padding: 6px 14px;
+  border-radius: 100px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: auto;
+}
+.lightbox-btn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(28, 22, 26, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--white);
   cursor: pointer;
   border-radius: 50%;
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  transition: background 0.2s, transform 0.2s;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
 }
-.lightbox > button:hover {
-  background: rgba(255, 255, 255, 0.28);
-  transform: scale(1.06);
+.lightbox-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: scale(1.08);
 }
-.lightbox .close {
+.lightbox-btn:active {
+  transform: scale(0.95);
+}
+.lightbox-close {
+  width: 44px;
+  height: 44px;
+}
+.lightbox-prev {
   position: absolute;
-  right: 25px;
-  top: 25px;
-  width: 48px;
-  height: 48px;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
 }
-.lightbox figure {
+.lightbox-prev:hover {
+  transform: translateY(-50%) scale(1.08);
+}
+.lightbox-prev:active {
+  transform: translateY(-50%) scale(0.95);
+}
+.lightbox-next {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+}
+.lightbox-next:hover {
+  transform: translateY(-50%) scale(1.08);
+}
+.lightbox-next:active {
+  transform: translateY(-50%) scale(0.95);
+}
+.lightbox-figure, .lightbox figure {
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   cursor: default;
+  max-width: 90vw;
+  max-height: 85vh;
 }
 .lightbox img {
-  max-height: 82vh;
+  max-height: 84vh;
   max-width: 86vw;
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
-}
-.lightbox figcaption {
-  color: var(--white);
-  text-align: center;
-  margin-top: 14px;
-  font-size: 14.5px;
-  font-weight: 600;
+  border-radius: 10px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.65);
+  user-select: none;
+  pointer-events: auto;
 }
 
 /* Donation & Contact */
@@ -1619,6 +1673,17 @@ blockquote {
   .amounts { grid-template-columns: repeat(3, 1fr); }
   .plain-cta { flex-direction: column; align-items: flex-start; gap: 20px; }
   .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .lightbox { padding: 12px; }
+  .lightbox-topbar { top: 14px; left: 14px; right: 14px; }
+  .lightbox-btn { width: 44px; height: 44px; }
+  .lightbox-close { width: 40px; height: 40px; }
+  .lightbox-prev { left: 10px; top: 50%; transform: translateY(-50%); }
+  .lightbox-prev:hover { transform: translateY(-50%) scale(1.06); }
+  .lightbox-prev:active { transform: translateY(-50%) scale(0.94); }
+  .lightbox-next { right: 10px; top: 50%; transform: translateY(-50%); }
+  .lightbox-next:hover { transform: translateY(-50%) scale(1.06); }
+  .lightbox-next:active { transform: translateY(-50%) scale(0.94); }
+  .lightbox img { max-height: 78vh; max-width: calc(100vw - 20px); border-radius: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
