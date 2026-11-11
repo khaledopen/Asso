@@ -721,7 +721,7 @@ p { margin: 0; }
   width: min(var(--container), calc(100% - var(--container-padding) * 2));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: minmax(90px, auto) 1fr;
   align-items: start;
   gap: 32px;
 }
@@ -731,6 +731,15 @@ p { margin: 0; }
   color: var(--pink-light);
   font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.page-hero-inner > span.hero-date-badge {
+  font-size: clamp(22px, 2.6vw, 32px);
+  padding-top: 4px;
+}
+.page-hero-content {
+  min-width: 0;
 }
 .page-hero .eyebrow {
   color: var(--pink-light);
@@ -1599,8 +1608,8 @@ blockquote {
     grid-column: span 2;
   }
   .page-hero-inner {
-    grid-template-columns: 80px 1fr;
-    gap: 20px;
+    grid-template-columns: minmax(70px, auto) 1fr;
+    gap: 24px;
   }
   .donation-layout, .contact-layout {
     grid-template-columns: 1fr;
@@ -1666,6 +1675,7 @@ blockquote {
   .support .mark { display: none; }
   .page-hero-inner { grid-template-columns: 1fr; gap: 10px; }
   .page-hero-inner > span { font-size: 32px; }
+  .page-hero-inner > span.hero-date-badge { font-size: 22px; }
   .page-hero h1 { font-size: 36px; }
   .footer-grid { grid-template-columns: 1fr; gap: 32px; }
   .footer-grid > div:last-child { grid-column: auto; }

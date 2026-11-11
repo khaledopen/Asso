@@ -89,7 +89,31 @@ function Reveal({children,className=""}:{children:React.ReactNode,className?:str
 function Eyebrow({children}:{children:React.ReactNode}){return <p className="eyebrow"><span/> {children}</p>}
 function Intro({eyebrow,title,text}:{eyebrow:string,title:string,text?:string}){return <div className="section-intro"><Eyebrow>{eyebrow}</Eyebrow><h2>{title}</h2>{text&&<p>{text}</p>}</div>}
 function ArrowLink({to,children}:{to:string,children:React.ReactNode}){return <Link to={to} className="arrow-link">{children}<ArrowRight size={17}/></Link>}
-function PageHero({index,title,lede}:{index:string,title:string,lede:string}){return <section className="page-hero"><div className="page-hero-inner"><span>{index}</span><div><Eyebrow>Un sourire pour Tissem</Eyebrow><h1>{title}</h1><p>{lede}</p></div></div></section>}
+function PageHero({
+  index,
+  title,
+  lede,
+  eyebrow = "Un sourire pour Tissem",
+}:{
+  index?: string;
+  title: string;
+  lede: string;
+  eyebrow?: string;
+}){
+  const isDate = Boolean(index && index.includes("."));
+  return (
+    <section className="page-hero">
+      <div className="page-hero-inner">
+        {index && <span className={isDate ? "hero-date-badge" : "hero-number"}>{index}</span>}
+        <div className="page-hero-content">
+          <Eyebrow>{eyebrow}</Eyebrow>
+          <h1>{title}</h1>
+          <p>{lede}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
 function ActionRow({action,reverse=false}:{action:typeof actions[number],reverse?:boolean}){
   const isPoster = action.slug === "handi-zumba" || action.slug === "mallette-handicap";
   return (
@@ -389,7 +413,12 @@ function NewsDetail(){
   const isSalon = n.slug === "salon-solidaire";
   return (
     <main>
-      <PageHero index={n.date} title={n.title} lede={n.category}/>
+      <PageHero
+        index={n.date}
+        eyebrow={`Actualité · ${n.category}`}
+        title={n.title}
+        lede={n.excerpt}
+      />
       <div className="detail-wrapper">
         <div className="back-bar">
           <Link to="/actualites" className="back-link">
