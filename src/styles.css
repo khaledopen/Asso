@@ -1486,6 +1486,28 @@ blockquote {
   display: inline-block;
   margin: 15px 0 30px;
 }
+.contact-email {
+  display: inline-block;
+  margin: 10px 0 24px;
+  color: var(--deep);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(149, 27, 81, .3);
+  text-underline-offset: 4px;
+}
+.form-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+.contact-layout button:disabled { opacity: .65; cursor: wait; }
+.form-notice.success { border-left-color: #27825a; background: #eef8f3; }
+.form-notice.error { border-left-color: #b3265d; background: #fff0f4; }
+.form-notice p + p { margin-top: 5px; font-size: 13px; }
+.form-notice a { color: var(--deep); font-weight: 700; text-decoration: underline; }
 .venue {
   border-top: 1px solid var(--line);
   padding-top: 22px;
