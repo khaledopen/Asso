@@ -288,7 +288,8 @@ function NewsDetail(){
   );
 }
 
-const excludedGalleryImages = new Set([1, 2, 3, 4, 5, 6, 13, 40, 41]);
+// Affiches / visuels graphiques (1-6, 13, 40, 41) + doublons de rafale (8, 11, 12, 17, 32, 50, 58)
+const excludedGalleryImages = new Set([1, 2, 3, 4, 5, 6, 13, 40, 41, 8, 11, 12, 17, 32, 50, 58]);
 const gallery = Array.from({length:75},(_,index)=>{
   const number=index+1;
   if(excludedGalleryImages.has(number)) return null;
