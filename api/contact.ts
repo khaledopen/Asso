@@ -1,5 +1,3 @@
-import nodemailer from "nodemailer";
-
 interface ContactPayload {
   name?: unknown;
   email?: unknown;
@@ -9,7 +7,22 @@ interface ContactPayload {
   website?: unknown;
 }
 
-const DEFAULT_RECIPIENT = "konesory321@gmail.com";
+interface BrevoRecipient {
+  email: string;
+  name?: string;
+}
+
+interface BrevoEmailPayload {
+  sender: { name: string; email: string };
+  to: BrevoRecipient[];
+  replyTo?: BrevoRecipient;
+  subject: string;
+  htmlContent: string;
+  textContent: string;
+}
+
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+const DEFAULT_CONTACT_EMAIL = "konesory321@gmail.com";
 const DEFAULT_SITE_URL = "https://asso-pied.vercel.app";
 const HELLOASSO_URL =
   "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
@@ -126,6 +139,26 @@ function buildEmailShell({
 </html>`;
 }
 
+async function sendBrevoEmail(
+  apiKey: string,
+  payload: BrevoEmailPayload,
+): Promise<void> {
+  const response = await fetch(BREVO_API_URL, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "api-key": apiKey,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const details = await response.text().catch(() => "");
+    throw new Error(`Brevo API ${response.status}: ${details}`);
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   let payload: ContactPayload;
   try {
@@ -137,15 +170,18 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const website = typeof payload.website === "string" ? payload.website.trim() : "";
+  const website =
+    typeof payload.website === "string" ? payload.website.trim() : "";
   if (website.length > 0) {
     return Response.json({ ok: true });
   }
 
   const name = typeof payload.name === "string" ? payload.name.trim() : "";
   const email = typeof payload.email === "string" ? payload.email.trim() : "";
-  const subject = typeof payload.subject === "string" ? payload.subject.trim() : "";
-  const message = typeof payload.message === "string" ? payload.message.trim() : "";
+  const subject =
+    typeof payload.subject === "string" ? payload.subject.trim() : "";
+  const message =
+    typeof payload.message === "string" ? payload.message.trim() : "";
   const consent = payload.consent === true;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -166,16 +202,22 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const gmailUser = process.env.GMAIL_USER?.trim();
-  const gmailPass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "").trim();
-  const recipient = (process.env.CONTACT_TO_EMAIL || gmailUser || DEFAULT_RECIPIENT).trim();
+  const apiKey = process.env.BREVO_API_KEY?.trim();
+  const recipient = (
+    process.env.CONTACT_TO_EMAIL || DEFAULT_CONTACT_EMAIL
+  ).trim();
+  const senderEmail = (
+    process.env.BREVO_SENDER_EMAIL ||
+    process.env.CONTACT_TO_EMAIL ||
+    DEFAULT_CONTACT_EMAIL
+  ).trim();
 
-  if (!gmailUser || !gmailPass) {
+  if (!apiKey) {
     return Response.json(
       {
         ok: false,
         error:
-          "Le service d’envoi Gmail n’est pas encore configuré sur Vercel (GMAIL_USER / GMAIL_APP_PASSWORD).",
+          "Le service d’envoi Brevo n’est pas encore configuré sur Vercel (BREVO_API_KEY).",
       },
       { status: 503 },
     );
@@ -192,14 +234,6 @@ export async function POST(request: Request): Promise<Response> {
 
   const headerName = cleanHeaderValue(name).replace(/"/g, "");
   const headerSubject = cleanHeaderValue(subject);
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: gmailUser,
-      pass: gmailPass,
-    },
-  });
 
   const adminBodyHtml = `
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#faf5f7;border:1px solid #eadfe4;border-radius:10px;margin-bottom:22px;">
@@ -238,16 +272,16 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   try {
-    await transporter.sendMail({
-      from: `"Un sourire pour Tissem — Site web" <${gmailUser}>`,
-      to: recipient,
-      replyTo: `"${headerName}" <${email}>`,
+    await sendBrevoEmail(apiKey, {
+      sender: { name: "Un sourire pour Tissem — Site web", email: senderEmail },
+      to: [{ email: recipient, name: "Un sourire pour Tissem" }],
+      replyTo: { email, name: headerName },
       subject: `[Site web] ${headerSubject} — ${headerName}`,
-      text: `Nouveau message reçu depuis le site Un sourire pour Tissem\n\nNom : ${name}\nEmail : ${email}\nSujet : ${subject}\nReçu le : ${receivedAt}\n\nMessage :\n${message}`,
-      html: adminHtml,
+      textContent: `Nouveau message reçu depuis le site Un sourire pour Tissem\n\nNom : ${name}\nEmail : ${email}\nSujet : ${subject}\nReçu le : ${receivedAt}\n\nMessage :\n${message}`,
+      htmlContent: adminHtml,
     });
   } catch (error) {
-    console.error("Erreur d'envoi SMTP Gmail (notification):", error);
+    console.error("Erreur d'envoi Brevo (notification):", error);
     return Response.json(
       { ok: false, error: "Impossible d’envoyer le message pour le moment." },
       { status: 502 },
@@ -293,13 +327,13 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   try {
-    await transporter.sendMail({
-      from: `"Un sourire pour Tissem" <${gmailUser}>`,
-      to: email,
-      replyTo: recipient,
+    await sendBrevoEmail(apiKey, {
+      sender: { name: "Un sourire pour Tissem", email: senderEmail },
+      to: [{ email, name: headerName }],
+      replyTo: { email: recipient, name: "Un sourire pour Tissem" },
       subject: "Merci pour votre message — Un sourire pour Tissem",
-      text: `Bonjour ${name},\n\nNous avons bien reçu votre message concernant "${subject}". Notre équipe bénévole vous répondra dans les plus brefs délais.\n\nVotre message :\n${message}\n\nAssociation Un sourire pour Tissem et tous les enfants\nOrléans & Loiret · 06 17 03 70 95`,
-      html: visitorHtml,
+      textContent: `Bonjour ${name},\n\nNous avons bien reçu votre message concernant "${subject}". Notre équipe bénévole vous répondra dans les plus brefs délais.\n\nVotre message :\n${message}\n\nAssociation Un sourire pour Tissem et tous les enfants\nOrléans & Loiret · 06 17 03 70 95`,
+      htmlContent: visitorHtml,
     });
   } catch (error) {
     console.warn("Accusé de réception visiteur non envoyé:", error);
