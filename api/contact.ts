@@ -139,6 +139,41 @@ function buildEmailShell({
 </html>`;
 }
 
+class BrevoApiError extends Error {
+  status: number;
+  code?: string;
+  brevoMessage?: string;
+
+  constructor(status: number, code?: string, brevoMessage?: string) {
+    super(`Brevo API ${status}${code ? ` (${code})` : ""}: ${brevoMessage || "unknown error"}`);
+    this.status = status;
+    this.code = code;
+    this.brevoMessage = brevoMessage;
+  }
+}
+
+function mapBrevoErrorMessage(error: unknown, senderEmail: string): string {
+  if (!(error instanceof BrevoApiError)) {
+    return "Impossible d’envoyer le message pour le moment.";
+  }
+
+  const raw = `${error.code || ""} ${error.brevoMessage || ""}`.toLowerCase();
+  if (raw.includes("ip")) {
+    return `Brevo bloque l’IP dynamique de Vercel : dans Brevo → Sécurité → Adresses IP autorisées, désactivez « Bloquer les adresses IP inconnues ».`;
+  }
+  if (raw.includes("sender") || raw.includes("not valid")) {
+    return `L’adresse expéditrice (${senderEmail}) n’est pas validée dans Brevo → Expéditeurs.`;
+  }
+  if (raw.includes("activat") || raw.includes("suspended") || raw.includes("disabled")) {
+    return `Le service transactionnel Brevo n’est pas encore activé sur ce compte (finalisez la vérification du profil Brevo).`;
+  }
+  if (error.status === 401 || raw.includes("key not found") || raw.includes("unauthorized")) {
+    return `Clé API Brevo refusée : vérifiez que BREVO_API_KEY commence bien par xkeysib- dans Vercel puis redéployez.`;
+  }
+
+  return `Erreur Brevo (${error.status}${error.code ? ` · ${error.code}` : ""}).`;
+}
+
 async function sendBrevoEmail(
   apiKey: string,
   payload: BrevoEmailPayload,
@@ -154,8 +189,18 @@ async function sendBrevoEmail(
   });
 
   if (!response.ok) {
-    const details = await response.text().catch(() => "");
-    throw new Error(`Brevo API ${response.status}: ${details}`);
+    const rawText = await response.text().catch(() => "");
+    let parsed: { code?: string; message?: string } | null = null;
+    try {
+      parsed = JSON.parse(rawText) as { code?: string; message?: string };
+    } catch {
+      parsed = null;
+    }
+    throw new BrevoApiError(
+      response.status,
+      parsed?.code,
+      parsed?.message || rawText,
+    );
   }
 }
 
@@ -223,6 +268,17 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  if (apiKey.startsWith("xsmtpsib-")) {
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Clé Brevo invalide : vous avez copié une clé SMTP (xsmtpsib-...) au lieu d’une clé API (xkeysib-...) depuis l’onglet « Clés API ».",
+      },
+      { status: 503 },
+    );
+  }
+
   const siteUrl = getSiteUrl(request);
   const logoUrl = `${siteUrl}/official/logo-tissem.jpg`;
   const receivedAt = formatParisDate(new Date());
@@ -283,7 +339,7 @@ export async function POST(request: Request): Promise<Response> {
   } catch (error) {
     console.error("Erreur d'envoi Brevo (notification):", error);
     return Response.json(
-      { ok: false, error: "Impossible d’envoyer le message pour le moment." },
+      { ok: false, error: mapBrevoErrorMessage(error, senderEmail) },
       { status: 502 },
     );
   }
