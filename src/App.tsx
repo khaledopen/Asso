@@ -47,7 +47,38 @@ function Eyebrow({children}:{children:React.ReactNode}){return <p className="eye
 function Intro({eyebrow,title,text}:{eyebrow:string,title:string,text?:string}){return <div className="section-intro"><Eyebrow>{eyebrow}</Eyebrow><h2>{title}</h2>{text&&<p>{text}</p>}</div>}
 function ArrowLink({to,children}:{to:string,children:React.ReactNode}){return <Link to={to} className="arrow-link">{children}<ArrowRight size={17}/></Link>}
 function PageHero({index,title,lede}:{index:string,title:string,lede:string}){return <section className="page-hero"><div className="page-hero-inner"><span>{index}</span><div><Eyebrow>Un sourire pour Tissem</Eyebrow><h1>{title}</h1><p>{lede}</p></div></div></section>}
-function ActionRow({action,reverse=false}:{action:typeof actions[number],reverse?:boolean}){return <article className={`action-row ${reverse?"reverse":""}`}><motion.div className="action-image" initial={{clipPath:"inset(0 0 100% 0)"}} whileInView={{clipPath:"inset(0 0 0% 0)"}} viewport={{once:true}} transition={{duration:.85,ease:[.22,1,.36,1]}}><motion.img src={action.image} alt={action.title} loading="lazy" initial={{scale:1.08}} whileInView={{scale:1}} viewport={{once:true}} transition={{duration:1.15,ease:[.22,1,.36,1]}}/><span>{action.number}</span></motion.div><div className="action-copy"><p className="micro">{action.kicker}</p><h3>{action.title}</h3><p>{action.short}</p><ArrowLink to={`/actions/${action.slug}`}>Découvrir l’action</ArrowLink></div></article>}
+function ActionRow({action,reverse=false}:{action:typeof actions[number],reverse?:boolean}){
+  const isPoster = action.slug === "handi-zumba" || action.slug === "mallette-handicap";
+  return (
+    <article className={`action-row ${reverse?"reverse":""}`}>
+      <motion.div
+        className={`action-image ${isPoster ? "framed-action" : ""}`}
+        initial={{clipPath:"inset(0 0 100% 0)"}}
+        whileInView={{clipPath:"inset(0 0 0% 0)"}}
+        viewport={{once:true}}
+        transition={{duration:.85,ease:[.22,1,.36,1]}}
+      >
+        <motion.img
+          src={action.image}
+          alt={action.title}
+          loading="lazy"
+          className={isPoster ? "action-poster" : "action-photo"}
+          initial={{scale:1.04}}
+          whileInView={{scale:1}}
+          viewport={{once:true}}
+          transition={{duration:1.15,ease:[.22,1,.36,1]}}
+        />
+        <span>{action.number}</span>
+      </motion.div>
+      <div className="action-copy">
+        <p className="micro">{action.kicker}</p>
+        <h3>{action.title}</h3>
+        <p>{action.short}</p>
+        <ArrowLink to={`/actions/${action.slug}`}>Découvrir l’action</ArrowLink>
+      </div>
+    </article>
+  );
+}
 
 function Home(){
   return (
@@ -136,7 +167,7 @@ function Home(){
   );
 }
 
-function Association(){return <main><PageHero index="01" title="Une histoire devenue engagement." lede="Depuis 2016, l’association agit dans le Loiret pour les enfants en situation de handicap et leurs familles."/><Reveal><section className="story-layout"><div className="story-photo"><img src="/actions/action-071.jpg" alt="Un enfant accompagné lors d’une rencontre de l’association"/><span>Sur le terrain, avec les enfants et les familles</span></div><div className="story-copy"><Eyebrow>Notre histoire</Eyebrow><h2>Faire de l’expérience vécue une force collective.</h2><p>Un sourire pour Tissem et tous les enfants porte une parole simple : les enfants extraordinaires doivent pouvoir participer, découvrir, bouger et s’épanouir comme les autres.</p><blockquote>« Ensemble pour accompagner les enfants extraordinaires et faire grandir leurs sourires. »</blockquote></div></section></Reveal><Reveal><section className="editorial-grid"><div><span>01</span><h3>Notre mission</h3><p>Créer des activités accessibles et des outils de sensibilisation qui soutiennent l’inclusion et l’autonomie.</p></div><div><span>02</span><h3>Notre manière d’agir</h3><p>Partir du réel, écouter les familles, travailler avec les acteurs locaux et proposer des formats concrets.</p></div><div><span>03</span><h3>Notre territoire</h3><p>Orléans, La Chapelle-Saint-Mesmin et plus largement le Loiret, au fil des rencontres et partenariats.</p></div></section></Reveal><Reveal><section className="plain-cta"><div><Eyebrow>Participer</Eyebrow><h2>Vous avez du temps, une idée ou une compétence à partager ?</h2></div><ArrowLink to="/contact">Parlons-en</ArrowLink></section></Reveal></main>}
+function Association(){return <main><PageHero index="01" title="Une histoire devenue engagement." lede="Depuis 2016, l’association agit dans le Loiret pour les enfants en situation de handicap et leurs familles."/><Reveal><section className="story-layout"><div className="story-photo"><img src="/actions/action-071.jpg" alt="Moment partagé lors d’une rencontre de l’association"/></div><div className="story-copy"><Eyebrow>Notre histoire</Eyebrow><h2>Faire de l’expérience vécue une force collective.</h2><p>Un sourire pour Tissem et tous les enfants porte une parole simple : les enfants extraordinaires doivent pouvoir participer, découvrir, bouger et s’épanouir comme les autres.</p><blockquote>« Ensemble pour accompagner les enfants extraordinaires et faire grandir leurs sourires. »</blockquote></div></section></Reveal><Reveal><section className="editorial-grid"><div><span>01</span><h3>Notre mission</h3><p>Créer des activités accessibles et des outils de sensibilisation qui soutiennent l’inclusion et l’autonomie.</p></div><div><span>02</span><h3>Notre manière d’agir</h3><p>Partir du réel, écouter les familles, travailler avec les acteurs locaux et proposer des formats concrets.</p></div><div><span>03</span><h3>Notre territoire</h3><p>Orléans, La Chapelle-Saint-Mesmin et plus largement le Loiret, au fil des rencontres et partenariats.</p></div></section></Reveal><Reveal><section className="plain-cta"><div><Eyebrow>Participer</Eyebrow><h2>Vous avez du temps, une idée ou une compétence à partager ?</h2></div><ArrowLink to="/contact">Parlons-en</ArrowLink></section></Reveal></main>}
 
 function Actions(){return <main><PageHero index="02" title="Agir, simplement et concrètement." lede="Des actions construites autour de l’inclusion, du mouvement, de l’autonomie et du bien-être."/><section className="actions-page">{actions.map((a,i)=><Reveal key={a.slug}><ActionRow action={a} reverse={i%2===1}/></Reveal>)}</section></main>}
 function ActionDetail(){
@@ -144,6 +175,7 @@ function ActionDetail(){
   const a=actions.find(x=>x.slug===slug);
   if(!a)return <NotFound/>;
   const isZumba = a.slug === "handi-zumba";
+  const isPoster = isZumba || a.slug === "mallette-handicap";
   return (
     <main>
       <PageHero index={a.number} title={a.title} lede={a.kicker}/>
@@ -157,7 +189,7 @@ function ActionDetail(){
           <img
             src={a.image}
             alt={isZumba ? "Affiche officielle Handi'Zumba - Un sourire pour Tissem" : a.title}
-            style={isZumba ? { objectFit: "contain", height: "auto", maxHeight: "580px", background: "#fff", borderRadius: "16px", boxShadow: "0 14px 38px rgba(0,0,0,0.08)", padding: "4px" } : undefined}
+            className={isPoster ? "detail-poster" : "detail-photo"}
           />
           <div>
             <Eyebrow>{isZumba ? "Affiche & informations officielles" : "Ce que nous faisons"}</Eyebrow>
@@ -204,6 +236,7 @@ function NewsDetail(){
   const n=news.find(x=>x.slug===slug);
   if(!n)return <NotFound/>;
   const isZumba = n.slug === "handi-zumba-octobre";
+  const isPoster = isZumba || n.slug === "mallette-handicap-novembre";
   return (
     <main>
       <PageHero index={n.date} title={n.title} lede={n.category}/>
@@ -217,7 +250,7 @@ function NewsDetail(){
           <img
             src={n.image}
             alt={isZumba ? "Affiche officielle Handi'Zumba - Un sourire pour Tissem" : n.title}
-            style={isZumba ? { objectFit: "contain", height: "auto", maxHeight: "580px", background: "#fff", borderRadius: "16px", boxShadow: "0 14px 38px rgba(0,0,0,0.08)", padding: "4px" } : undefined}
+            className={isPoster ? "detail-poster" : "detail-photo"}
           />
           <div>
             <Eyebrow>Actualité de l’association</Eyebrow>
@@ -304,7 +337,6 @@ function Galerie(){
               transition={{duration:.45,delay:Math.min((i%6)*.04,.24)}}
             >
               <img src={g.src} alt={g.alt} loading="lazy"/>
-              <span>{g.label}</span>
             </motion.button>
           ))}
         </div>
@@ -325,7 +357,6 @@ function Galerie(){
               <button type="button" onClick={(e)=>{e.stopPropagation();setSelected((selected-1+shown.length)%shown.length)}} aria-label="Précédente"><ChevronLeft size={36}/></button>
               <motion.figure key={shown[selected].src} initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{duration:.2}} onClick={e=>e.stopPropagation()}>
                 <img src={shown[selected].src} alt={shown[selected].alt}/>
-                <figcaption>{shown[selected].label}</figcaption>
               </motion.figure>
               <button type="button" onClick={(e)=>{e.stopPropagation();setSelected((selected+1)%shown.length)}} aria-label="Suivante"><ChevronRight size={36}/></button>
             </motion.div>
