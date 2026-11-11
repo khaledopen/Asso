@@ -22,7 +22,8 @@ interface BrevoEmailPayload {
 }
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
-const DEFAULT_CONTACT_EMAIL = "konesory321@gmail.com";
+const BREVO_SENDERS_URL = "https://api.brevo.com/v3/senders";
+const DEFAULT_CONTACT_EMAIL = "Mk45mk66@gmail.com";
 const DEFAULT_SITE_URL = "https://asso-pied.vercel.app";
 const HELLOASSO_URL =
   "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
@@ -161,7 +162,7 @@ function mapBrevoErrorMessage(error: unknown, senderEmail: string): string {
   if (raw.includes("ip")) {
     return `Brevo bloque l’IP dynamique de Vercel : dans Brevo → Sécurité → Adresses IP autorisées, désactivez « Bloquer les adresses IP inconnues ».`;
   }
-  if (raw.includes("sender") || raw.includes("not valid")) {
+  if (isSenderValidationError(error)) {
     return `L’adresse expéditrice (${senderEmail}) n’est pas validée dans Brevo → Expéditeurs.`;
   }
   if (raw.includes("activat") || raw.includes("suspended") || raw.includes("disabled")) {
@@ -172,6 +173,40 @@ function mapBrevoErrorMessage(error: unknown, senderEmail: string): string {
   }
 
   return `Erreur Brevo (${error.status}${error.code ? ` · ${error.code}` : ""}).`;
+}
+
+function isSenderValidationError(error: unknown): boolean {
+  if (!(error instanceof BrevoApiError)) return false;
+  const raw = `${error.code || ""} ${error.brevoMessage || ""}`.toLowerCase();
+  return raw.includes("sender") || raw.includes("not valid");
+}
+
+async function findActiveBrevoSender(
+  apiKey: string,
+  excludedEmail: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(BREVO_SENDERS_URL, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "api-key": apiKey,
+      },
+    });
+    if (!response.ok) return null;
+    const data = (await response.json()) as {
+      senders?: Array<{ email?: string; active?: boolean }>;
+    };
+    const active = data.senders?.find(
+      (s) =>
+        s.active === true &&
+        typeof s.email === "string" &&
+        s.email.toLowerCase() !== excludedEmail.toLowerCase(),
+    );
+    return active?.email?.trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 async function sendBrevoEmail(
@@ -251,9 +286,10 @@ export async function POST(request: Request): Promise<Response> {
   const recipient = (
     process.env.CONTACT_TO_EMAIL || DEFAULT_CONTACT_EMAIL
   ).trim();
-  const senderEmail = (
-    process.env.BREVO_SENDER_EMAIL ||
-    process.env.CONTACT_TO_EMAIL ||
+  const explicitSender = process.env.BREVO_SENDER_EMAIL?.trim();
+  let effectiveSenderEmail = (
+    explicitSender ||
+    recipient ||
     DEFAULT_CONTACT_EMAIL
   ).trim();
 
@@ -327,21 +363,52 @@ export async function POST(request: Request): Promise<Response> {
     footerNote: `Message envoyé depuis <a href="${escapeHtml(siteUrl)}" style="color:#951b51;text-decoration:none;font-weight:700;">${escapeHtml(siteUrl)}</a> · Orléans &amp; Loiret`,
   });
 
+  const buildAdminPayload = (fromEmail: string): BrevoEmailPayload => ({
+    sender: { name: "Un sourire pour Tissem — Site web", email: fromEmail },
+    to: [{ email: recipient, name: "Un sourire pour Tissem" }],
+    replyTo: { email, name: headerName },
+    subject: `[Site web] ${headerSubject} — ${headerName}`,
+    textContent: `Nouveau message reçu depuis le site Un sourire pour Tissem\n\nNom : ${name}\nEmail : ${email}\nSujet : ${subject}\nReçu le : ${receivedAt}\n\nMessage :\n${message}`,
+    htmlContent: adminHtml,
+  });
+
   try {
-    await sendBrevoEmail(apiKey, {
-      sender: { name: "Un sourire pour Tissem — Site web", email: senderEmail },
-      to: [{ email: recipient, name: "Un sourire pour Tissem" }],
-      replyTo: { email, name: headerName },
-      subject: `[Site web] ${headerSubject} — ${headerName}`,
-      textContent: `Nouveau message reçu depuis le site Un sourire pour Tissem\n\nNom : ${name}\nEmail : ${email}\nSujet : ${subject}\nReçu le : ${receivedAt}\n\nMessage :\n${message}`,
-      htmlContent: adminHtml,
-    });
+    await sendBrevoEmail(apiKey, buildAdminPayload(effectiveSenderEmail));
   } catch (error) {
-    console.error("Erreur d'envoi Brevo (notification):", error);
-    return Response.json(
-      { ok: false, error: mapBrevoErrorMessage(error, senderEmail) },
-      { status: 502 },
-    );
+    let sentWithFallback = false;
+    if (!explicitSender && isSenderValidationError(error)) {
+      const activeSender = await findActiveBrevoSender(
+        apiKey,
+        effectiveSenderEmail,
+      );
+      if (activeSender) {
+        try {
+          effectiveSenderEmail = activeSender;
+          await sendBrevoEmail(apiKey, buildAdminPayload(effectiveSenderEmail));
+          sentWithFallback = true;
+        } catch (fallbackError) {
+          console.error(
+            "Erreur d'envoi Brevo (secours expéditeur):",
+            fallbackError,
+          );
+          return Response.json(
+            {
+              ok: false,
+              error: mapBrevoErrorMessage(fallbackError, effectiveSenderEmail),
+            },
+            { status: 502 },
+          );
+        }
+      }
+    }
+
+    if (!sentWithFallback) {
+      console.error("Erreur d'envoi Brevo (notification):", error);
+      return Response.json(
+        { ok: false, error: mapBrevoErrorMessage(error, effectiveSenderEmail) },
+        { status: 502 },
+      );
+    }
   }
 
   const visitorBodyHtml = `
@@ -384,7 +451,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     await sendBrevoEmail(apiKey, {
-      sender: { name: "Un sourire pour Tissem", email: senderEmail },
+      sender: { name: "Un sourire pour Tissem", email: effectiveSenderEmail },
       to: [{ email, name: headerName }],
       replyTo: { email: recipient, name: "Un sourire pour Tissem" },
       subject: "Merci pour votre message — Un sourire pour Tissem",
