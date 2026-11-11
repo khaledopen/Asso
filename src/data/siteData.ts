@@ -36,9 +36,9 @@ export const actions: Action[] = [
   {
     slug: "handi-zumba",
     title: "Handi’Zumba & Expression Corporelle",
-    image: img("photo-1503454537195-1dcabb73ffb9"),
-    short: "Bouger, danser et s’amuser au rythme de la musique dans une ambiance chaleureuse et bienveillante.",
-    detail: "Des sessions adaptées au rythme de chaque enfant et participant. La musique et le mouvement permettent de libérer les émotions, d'encourager la coordination et surtout de créer d'immenses moments de joie collective.",
+    image: "/official/handi-zumba.jpg",
+    short: "Bouger, danser et s’amuser au rythme de la musique dans une ambiance chaleureuse et bienveillante avec la coach Nassima.",
+    detail: "Des sessions 100% gratuites adaptées aux enfants en situation de handicap à L'Argonaute d'Orléans. La musique et le mouvement permettent de libérer les émotions, d'encourager la coordination et de créer d'immenses moments de joie collective.",
   },
   {
     slug: "accompagnement-familles",

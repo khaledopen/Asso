@@ -14,7 +14,7 @@ const remote = (id: string) => `https://images.unsplash.com/${id}?auto=format&fi
 
 const actions = [
   { slug:"mallette-handicap", number:"01", title:"Mallette Handi’Cap", kicker:"Inclusion · Autonomie · Bien-être", image:OFFICIAL.mallette, short:"Une mallette pensée pour sensibiliser au handicap et ouvrir, concrètement, les portes de l’inclusion.", detail:"La Mallette Handi’Cap rassemble des supports ludiques, sensoriels et pédagogiques. Elle permet d’aborder les différences avec les enfants, de mieux comprendre certaines situations de handicap et d’encourager l’autonomie." },
-  { slug:"handi-zumba", number:"02", title:"Handi’Zumba", kicker:"Bouger · S’amuser · Se dépasser", image:"/actions/action-020.jpg", short:"Une activité gratuite, inclusive et joyeuse, conçue pour les enfants en situation de handicap.", detail:"Handi’Zumba transforme la danse en espace de confiance, de plaisir et de convivialité. Chacun participe à son rythme, dans un cadre accueillant et accessible." },
+  { slug:"handi-zumba", number:"02", title:"Handi’Zumba", kicker:"Bouger · S’amuser · Se dépasser", image:OFFICIAL.zumba, short:"Une activité gratuite, inclusive et joyeuse, conçue pour les enfants en situation de handicap.", detail:"Avec la coach Nassima à L’Argonaute d’Orléans, Handi’Zumba transforme la danse en espace de confiance, de plaisir et de convivialité. 100% gratuit, chacun participe à son rythme, dans un cadre accueillant et accessible." },
   { slug:"sport-solidaire", number:"03", title:"Sport solidaire", kicker:"Confiance · Énergie · Partage", image:"/actions/action-051.jpg", short:"Des séances, sorties et défis collectifs pour créer du lien et rendre l’activité plus accessible.", detail:"L’association développe des rendez-vous sportifs conviviaux pour faire du mouvement un outil de bien-être, de confiance et d’inclusion." },
   { slug:"sensibilisation", number:"04", title:"Rencontres & sensibilisation", kicker:"Écouter · Comprendre · Rassembler", image:"/actions/action-059.jpg", short:"Des ateliers, événements et rencontres pour faire évoluer les regards et soutenir les familles.", detail:"Forums, jeux de sensibilisation, rencontres associatives et accueil de jeunes : l’association crée des occasions concrètes de dialoguer autour du handicap et du vivre-ensemble." },
 ];
@@ -22,7 +22,7 @@ const actions = [
 const news = [
   { slug:"mallette-handicap-novembre", date:"06.11.2026", category:"Projet", title:"La Mallette Handi’Cap prend forme", excerpt:"Un outil visuel et sensoriel autour de l’inclusion, de l’autonomie et du bien-être.", image:OFFICIAL.mallette },
   { slug:"accueil-stagiaires", date:"19.10.2026", category:"Vie associative", title:"Transmettre aussi aux jeunes", excerpt:"L’association accueille des stagiaires et leur fait découvrir le fonctionnement d’un projet solidaire.", image:OFFICIAL.team },
-  { slug:"handi-zumba-octobre", date:"17.10.2026", category:"Activité", title:"Une séance Handi’Zumba à Orléans", excerpt:"Danser, prendre confiance et partager un moment convivial dans un cadre inclusif.", image:"/actions/action-022.jpg" },
+  { slug:"handi-zumba-octobre", date:"17.10.2026", category:"Activité", title:"Séance découverte Handi’Zumba à Orléans", excerpt:"Bouger, s’amuser et se dépasser ensemble avec la coach Nassima à L’Argonaute.", image:OFFICIAL.zumba },
   { slug:"vivre-ensemble", date:"30.09.2026", category:"Rencontre", title:"Tous différents, tous ensemble", excerpt:"Des sorties, des activités adaptées et des temps collectifs pour parler d’inclusion autrement.", image:"/actions/action-052.jpg" },
 ];
 
@@ -54,10 +54,107 @@ function Home(){return <main><section className="home-hero"><motion.div classNam
 function Association(){return <main><PageHero index="01" title="Une histoire devenue engagement." lede="Depuis 2016, l’association agit dans le Loiret pour les enfants en situation de handicap et leurs familles."/><Reveal><section className="story-layout"><div className="story-photo"><img src="/actions/action-071.jpg" alt="Un enfant accompagné lors d’une rencontre de l’association"/><span>Sur le terrain, avec les enfants et les familles</span></div><div className="story-copy"><Eyebrow>Notre histoire</Eyebrow><h2>Faire de l’expérience vécue une force collective.</h2><p>Un sourire pour Tissem et tous les enfants porte une parole simple : les enfants extraordinaires doivent pouvoir participer, découvrir, bouger et s’épanouir comme les autres.</p><blockquote>« Ensemble pour accompagner les enfants extraordinaires et faire grandir leurs sourires. »</blockquote></div></section></Reveal><Reveal><section className="editorial-grid"><div><span>01</span><h3>Notre mission</h3><p>Créer des activités accessibles et des outils de sensibilisation qui soutiennent l’inclusion et l’autonomie.</p></div><div><span>02</span><h3>Notre manière d’agir</h3><p>Partir du réel, écouter les familles, travailler avec les acteurs locaux et proposer des formats concrets.</p></div><div><span>03</span><h3>Notre territoire</h3><p>Orléans, La Chapelle-Saint-Mesmin et plus largement le Loiret, au fil des rencontres et partenariats.</p></div></section></Reveal><Reveal><section className="plain-cta"><div><Eyebrow>Participer</Eyebrow><h2>Vous avez du temps, une idée ou une compétence à partager ?</h2></div><ArrowLink to="/contact">Parlons-en</ArrowLink></section></Reveal></main>}
 
 function Actions(){return <main><PageHero index="02" title="Agir, simplement et concrètement." lede="Des actions construites autour de l’inclusion, du mouvement, de l’autonomie et du bien-être."/><section className="actions-page">{actions.map((a,i)=><Reveal key={a.slug}><ActionRow action={a} reverse={i%2===1}/></Reveal>)}</section></main>}
-function ActionDetail(){const {slug}=useParams();const a=actions.find(x=>x.slug===slug);if(!a)return <NotFound/>;return <main><PageHero index={a.number} title={a.title} lede={a.kicker}/><section className="detail-layout"><img src={a.image} alt={a.title}/><div><Eyebrow>Ce que nous faisons</Eyebrow><h2>{a.short}</h2><p>{a.detail}</p><div className="fact-note">Les dates et modalités d’inscription sont communiquées pour chaque rendez-vous. Contactez l’association pour connaître la prochaine session.</div><ArrowLink to="/contact">Demander des informations</ArrowLink></div></section></main>}
+function ActionDetail(){
+  const {slug}=useParams();
+  const a=actions.find(x=>x.slug===slug);
+  if(!a)return <NotFound/>;
+  const isZumba = a.slug === "handi-zumba";
+  return (
+    <main>
+      <PageHero index={a.number} title={a.title} lede={a.kicker}/>
+      <section className="detail-layout">
+        <img
+          src={a.image}
+          alt={isZumba ? "Affiche officielle Handi'Zumba - Un sourire pour Tissem" : a.title}
+          style={isZumba ? { objectFit: "contain", height: "auto", maxHeight: "580px", background: "#fff", borderRadius: "16px", boxShadow: "0 14px 38px rgba(0,0,0,0.08)", padding: "4px" } : undefined}
+        />
+        <div>
+          <Eyebrow>{isZumba ? "Affiche & informations officielles" : "Ce que nous faisons"}</Eyebrow>
+          <h2>{a.short}</h2>
+          <p>{a.detail}</p>
+          {isZumba ? (
+            <>
+              <div className="fact-note" style={{marginTop:"24px",background:"var(--blush)",padding:"18px 22px",borderRadius:"0 12px 12px 0"}}>
+                <p style={{fontSize:"15px",fontWeight:700,color:"var(--deep)",marginBottom:"8px"}}>Détails de la séance (affiche officielle) :</p>
+                <ul style={{display:"grid",gap:"6px",fontSize:"13.5px",lineHeight:1.5,paddingLeft:"18px",color:"var(--ink)"}}>
+                  <li><strong>Tarif :</strong> 100% GRATUIT pour tous les enfants en situation de handicap</li>
+                  <li><strong>Encadrement :</strong> Avec la coach <strong>Nassima</strong></li>
+                  <li><strong>Lieu :</strong> L’Argonaute — 73 boulevard Marie Stuart, 45100 Orléans (quartier de l'Argonne)</li>
+                  <li><strong>Horaires :</strong> Samedi de 14h30 à 15h30</li>
+                  <li><strong>Au programme :</strong> Activité inclusive, confiance en soi, plaisir de bouger, convivialité</li>
+                </ul>
+              </div>
+              <p style={{marginTop:"16px",fontSize:"13px",color:"var(--muted)"}}>
+                <strong>Inscriptions obligatoires :</strong> sur HelloAsso ou au <a href="tel:+33617037095" style={{fontWeight:600,color:"var(--deep)"}}>06 17 03 70 95</a>.
+              </p>
+              <div style={{display:"flex",gap:"16px",alignItems:"center",marginTop:"24px",flexWrap:"wrap"}}>
+                <a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" className="solid-button">S’inscrire sur HelloAsso ↗</a>
+                <ArrowLink to="/contact">Nous contacter</ArrowLink>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="fact-note">
+                Les dates et modalités d’inscription sont communiquées pour chaque rendez-vous. Contactez l’association pour connaître la prochaine session.
+              </div>
+              <ArrowLink to="/contact">Demander des informations</ArrowLink>
+            </>
+          )}
+        </div>
+      </section>
+    </main>
+  );
+}
 
 function Actualites(){const [q,setQ]=useState("");const [cat,setCat]=useState("Toutes");const cats=["Toutes",...new Set(news.map(n=>n.category))];const filtered=useMemo(()=>news.filter(n=>(cat==="Toutes"||n.category===cat)&&`${n.title} ${n.excerpt}`.toLowerCase().includes(q.toLowerCase())),[q,cat]);return <main><PageHero index="03" title="La vie de l’association." lede="Actions, rencontres, ateliers : des nouvelles ancrées dans le quotidien."/><section className="news-page"><div className="filter-bar"><label><Search size={18}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher"/><span className="sr-only">Rechercher une actualité</span></label><div>{cats.map(c=><button key={c} onClick={()=>setCat(c)} className={cat===c?"active":""}>{c}</button>)}</div></div><div className="journal-grid">{filtered.map(n=><article key={n.slug}><Link to={`/actualites/${n.slug}`}><img src={n.image} alt=""/><span>{n.date} — {n.category}</span><h2>{n.title}</h2><p>{n.excerpt}</p></Link></article>)}</div></section></main>}
-function NewsDetail(){const {slug}=useParams();const n=news.find(x=>x.slug===slug);if(!n)return <NotFound/>;return <main><PageHero index={n.date} title={n.title} lede={n.category}/><article className="article-page"><img src={n.image} alt=""/><div><Eyebrow>Actualité de l’association</Eyebrow><p className="article-lead">{n.excerpt}</p><p>Cette actualité reprend une action publiée par l’association. Pour les prochaines dates et les modalités à jour, contactez directement l’équipe.</p><ArrowLink to="/contact">Contacter l’association</ArrowLink></div></article></main>}
+function NewsDetail(){
+  const {slug}=useParams();
+  const n=news.find(x=>x.slug===slug);
+  if(!n)return <NotFound/>;
+  const isZumba = n.slug === "handi-zumba-octobre";
+  return (
+    <main>
+      <PageHero index={n.date} title={n.title} lede={n.category}/>
+      <article className="article-page">
+        <img
+          src={n.image}
+          alt={isZumba ? "Affiche officielle Handi'Zumba - Un sourire pour Tissem" : n.title}
+          style={isZumba ? { objectFit: "contain", height: "auto", maxHeight: "580px", background: "#fff", borderRadius: "16px", boxShadow: "0 14px 38px rgba(0,0,0,0.08)", padding: "4px" } : undefined}
+        />
+        <div>
+          <Eyebrow>Actualité de l’association</Eyebrow>
+          <p className="article-lead">{n.excerpt}</p>
+          {isZumba ? (
+            <>
+              <p>
+                L’association <strong>Un sourire pour Tissem et tous les enfants</strong> organise des séances découvertes <strong>Handi’Zumba</strong> animées par la coach <strong>Nassima</strong> à <strong>L’Argonaute d’Orléans</strong>.
+              </p>
+              <div className="fact-note" style={{marginTop:"20px",background:"var(--blush)",padding:"18px 22px",borderRadius:"0 12px 12px 0"}}>
+                <p style={{fontSize:"15px",fontWeight:700,color:"var(--deep)",marginBottom:"8px"}}>Informations pratiques & affiche :</p>
+                <ul style={{display:"grid",gap:"6px",fontSize:"13.5px",lineHeight:1.5,paddingLeft:"18px",color:"var(--ink)"}}>
+                  <li><strong>Tarif :</strong> Gratuit pour tous les enfants en situation de handicap</li>
+                  <li><strong>Coach :</strong> Nassima</li>
+                  <li><strong>Lieu :</strong> L’Argonaute, 73 boulevard Marie Stuart, 45100 Orléans (quartier de l'Argonne)</li>
+                  <li><strong>Horaires :</strong> 14h30 à 15h30</li>
+                  <li><strong>Inscriptions :</strong> Obligatoire sur HelloAsso ou au 06 17 03 70 95</li>
+                </ul>
+              </div>
+              <div style={{display:"flex",gap:"16px",alignItems:"center",marginTop:"24px",flexWrap:"wrap"}}>
+                <a href={HELLOASSO_URL} target="_blank" rel="noopener noreferrer" className="solid-button">S’inscrire sur HelloAsso ↗</a>
+                <ArrowLink to="/contact">Nous poser une question</ArrowLink>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>Cette actualité reprend une action publiée par l’association. Pour les prochaines dates et les modalités à jour, contactez directement l’équipe.</p>
+              <ArrowLink to="/contact">Contacter l’association</ArrowLink>
+            </>
+          )}
+        </div>
+      </article>
+    </main>
+  );
+}
 
 const excludedGalleryImages = new Set([1, 2, 3, 4, 5, 6, 13, 40, 41]);
 const gallery = Array.from({length:75},(_,index)=>{
