@@ -1474,6 +1474,17 @@ blockquote {
   padding: 70px 0 25px;
   margin-top: auto;
 }
+.site-footer .brand b {
+  color: #ffffff;
+  transition: color 0.2s;
+}
+.site-footer .brand:hover b {
+  color: var(--pink-light);
+}
+.site-footer .brand small {
+  color: var(--pink-light);
+  display: block;
+}
 .footer-inner {
   width: min(var(--container), calc(100% - var(--container-padding) * 2));
   margin: 0 auto;
@@ -1629,7 +1640,7 @@ blockquote {
   .header-inner { height: 72px; }
   .brand img { width: 42px; height: 42px; }
   .brand b { font-size: 15px; }
-  .brand small { display: none; }
+  .site-header .brand small { display: none; }
   .home-hero-inner {
     grid-template-columns: 1fr;
     gap: 20px;
