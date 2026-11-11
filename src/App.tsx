@@ -216,7 +216,66 @@ function Home(){
   );
 }
 
-function Association(){return <main><PageHero index="01" title="Une histoire devenue engagement." lede="Depuis 2016, l’association agit dans le Loiret pour les enfants en situation de handicap et leurs familles."/><Reveal><section className="story-layout"><div className="story-photo"><img src="/actions/action-071.jpg" alt="Moment partagé lors d’une rencontre de l’association"/></div><div className="story-copy"><Eyebrow>Notre histoire</Eyebrow><h2>Faire de l’expérience vécue une force collective.</h2><p>Un sourire pour Tissem et tous les enfants porte une parole simple : les enfants extraordinaires doivent pouvoir participer, découvrir, bouger et s’épanouir comme les autres.</p><blockquote>« Ensemble pour accompagner les enfants extraordinaires et faire grandir leurs sourires. »</blockquote></div></section></Reveal><Reveal><section className="editorial-grid"><div><span>01</span><h3>Notre mission</h3><p>Créer des activités accessibles et des outils de sensibilisation qui soutiennent l’inclusion et l’autonomie.</p></div><div><span>02</span><h3>Notre manière d’agir</h3><p>Partir du réel, écouter les familles, travailler avec les acteurs locaux et proposer des formats concrets.</p></div><div><span>03</span><h3>Notre territoire</h3><p>Orléans, La Chapelle-Saint-Mesmin et plus largement le Loiret, au fil des rencontres et partenariats.</p></div></section></Reveal><Reveal><section className="plain-cta"><div><Eyebrow>Participer</Eyebrow><h2>Vous avez du temps, une idée ou une compétence à partager ?</h2></div><ArrowLink to="/contact">Parlons-en</ArrowLink></section></Reveal></main>}
+function Association(){
+  return (
+    <main>
+      <PageHero
+        index="01"
+        title="Une histoire devenue engagement."
+        lede="Depuis 2016, l’association agit dans le Loiret pour les enfants en situation de handicap et leurs familles."
+      />
+      <Reveal>
+        <section className="story-layout">
+          <div className="story-photo">
+            <img
+              src="/actions/action-071.jpg"
+              alt="Moment de partage avec Tissem et les bénévoles de l’association"
+              loading="lazy"
+            />
+          </div>
+          <div className="story-copy">
+            <Eyebrow>Notre histoire</Eyebrow>
+            <h2>Faire de l’expérience vécue une force collective.</h2>
+            <p>
+              Un sourire pour Tissem et tous les enfants porte une parole simple : les enfants extraordinaires doivent pouvoir participer, découvrir, bouger et s’épanouir comme les autres.
+            </p>
+            <blockquote>
+              « Ensemble pour accompagner les enfants extraordinaires et faire grandir leurs sourires. »
+            </blockquote>
+          </div>
+        </section>
+      </Reveal>
+      <Reveal>
+        <section className="editorial-grid">
+          <div>
+            <span>01</span>
+            <h3>Notre mission</h3>
+            <p>Créer des activités accessibles et des outils de sensibilisation qui soutiennent l’inclusion et l’autonomie.</p>
+          </div>
+          <div>
+            <span>02</span>
+            <h3>Notre manière d’agir</h3>
+            <p>Partir du réel, écouter les familles, travailler avec les acteurs locaux et proposer des formats concrets.</p>
+          </div>
+          <div>
+            <span>03</span>
+            <h3>Notre territoire</h3>
+            <p>Orléans, La Chapelle-Saint-Mesmin et plus largement le Loiret, au fil des rencontres et partenariats.</p>
+          </div>
+        </section>
+      </Reveal>
+      <Reveal>
+        <section className="plain-cta">
+          <div>
+            <Eyebrow>Participer</Eyebrow>
+            <h2>Vous avez du temps, une idée ou une compétence à partager ?</h2>
+          </div>
+          <ArrowLink to="/contact">Parlons-en</ArrowLink>
+        </section>
+      </Reveal>
+    </main>
+  );
+}
 
 function Actions(){return <main><PageHero index="02" title="Agir, simplement et concrètement." lede="Des actions construites autour de l’inclusion, du mouvement, de l’autonomie et du bien-être."/><section className="actions-page">{actions.map((a,i)=><Reveal key={a.slug}><ActionRow action={a} reverse={i%2===1}/></Reveal>)}</section></main>}
 function ActionDetail(){
