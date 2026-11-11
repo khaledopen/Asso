@@ -725,35 +725,40 @@ function Donation(){
 const schema=z.object({name:z.string().min(2,"Indiquez votre nom."),email:z.string().email("Email invalide."),subject:z.string().min(3,"Précisez le sujet."),message:z.string().min(10,"Écrivez au moins 10 caractères."),consent:z.literal(true,{message:"Votre accord est nécessaire."})});type FormData=z.infer<typeof schema>;
 function Contact(){
   const [status,setStatus]=useState<"idle"|"sending"|"success"|"error">("idle");
+  const [errorMessage,setErrorMessage]=useState<string|null>(null);
   const [website,setWebsite]=useState("");
   const {register,handleSubmit,reset,formState:{errors}}=useForm<FormData>({resolver:zodResolver(schema)});
 
   const sendMessage=async(val:FormData)=>{
     if(website){setStatus("success");return;}
     setStatus("sending");
+    setErrorMessage(null);
     try{
-      const response=await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`,{
+      const response=await fetch("/api/contact",{
         method:"POST",
         headers:{"Content-Type":"application/json","Accept":"application/json"},
         body:JSON.stringify({
-          nom:val.name,
+          name:val.name,
           email:val.email,
-          sujet:val.subject,
+          subject:val.subject,
           message:val.message,
-          _subject:`Nouveau message du site — ${val.subject}`,
-          _replyto:val.email,
-          _template:"table",
+          consent:val.consent,
+          website,
         }),
       });
-      if(!response.ok) throw new Error("Échec de l’envoi");
+      const data=(await response.json().catch(()=>null)) as {ok?:boolean;error?:string}|null;
+      if(!response.ok||!data?.ok){
+        throw new Error(data?.error||"Échec de l’envoi");
+      }
       setStatus("success");
       reset();
-    }catch{
+    }catch(error){
+      setErrorMessage(error instanceof Error?error.message:null);
       setStatus("error");
     }
   };
 
-  return <main><PageHero index="06" title="Parlons de votre idée." lede="Une question sur une activité, une proposition de partenariat ou l’envie de devenir bénévole ?"/><section className="contact-layout"><div><Eyebrow>Contact & coordonnées</Eyebrow><h2>Nous sommes basés dans le Loiret.</h2><p>Pour les informations sur les activités et inscriptions :</p><a className="contact-phone" href="tel:+33617037095">06 17 03 70 95</a><a className="contact-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a><p className="venue"><b>Lieu de certaines activités</b><br/>L’Argonaute<br/>73 boulevard Marie Stuart<br/>45100 Orléans</p><p className="venue" style={{marginTop:"18px"}}><b>Siège social</b><br/>48 Rue de Monteloup<br/>45380 La Chapelle-Saint-Mesmin</p></div><form action={`https://formsubmit.co/${CONTACT_EMAIL}`} method="POST" onSubmit={handleSubmit(sendMessage)} noValidate><label className="form-honeypot" aria-hidden="true"><span>Site internet</span><input tabIndex={-1} autoComplete="off" value={website} onChange={event=>setWebsite(event.target.value)}/></label>{[["name","Nom complet","text"],["email","Adresse email","email"],["subject","Sujet","text"]].map(([key,label,type])=><label key={key}><span>{label}</span><input type={type} autoComplete={key==="name"?"name":key==="email"?"email":"off"} {...register(key as keyof FormData)}/>{errors[key as keyof FormData]&&<small>{errors[key as keyof FormData]?.message}</small>}</label>)}<label><span>Votre message</span><textarea rows={5} {...register("message")}/>{errors.message&&<small>{errors.message.message}</small>}</label><label className="consent"><input type="checkbox" {...register("consent")}/><span>J’accepte que mes informations soient transmises à l’association afin de répondre à ma demande.</span></label>{errors.consent&&<small>{errors.consent.message}</small>}<button className="solid-button" type="submit" disabled={status==="sending"}>{status==="sending"?"Envoi en cours…":"Envoyer le message"} {status!=="sending"&&<ArrowRight size={17}/>}</button>{status==="success"&&<div className="form-notice success" role="status"><p><b>Votre message a bien été envoyé.</b></p><p>L’association vous répondra depuis {CONTACT_EMAIL}.</p></div>}{status==="error"&&<div className="form-notice error" role="alert"><p><b>Le message n’a pas pu être envoyé.</b></p><p>Vous pouvez réessayer ou écrire directement à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p></div>}</form></section></main>}
+  return <main><PageHero index="06" title="Parlons de votre idée." lede="Une question sur une activité, une proposition de partenariat ou l’envie de devenir bénévole ?"/><section className="contact-layout"><div><Eyebrow>Contact & coordonnées</Eyebrow><h2>Nous sommes basés dans le Loiret.</h2><p>Pour les informations sur les activités et inscriptions :</p><a className="contact-phone" href="tel:+33617037095">06 17 03 70 95</a><a className="contact-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a><p className="venue"><b>Lieu de certaines activités</b><br/>L’Argonaute<br/>73 boulevard Marie Stuart<br/>45100 Orléans</p><p className="venue" style={{marginTop:"18px"}}><b>Siège social</b><br/>48 Rue de Monteloup<br/>45380 La Chapelle-Saint-Mesmin</p></div><form onSubmit={handleSubmit(sendMessage)} noValidate><label className="form-honeypot" aria-hidden="true"><span>Site internet</span><input tabIndex={-1} autoComplete="off" value={website} onChange={event=>setWebsite(event.target.value)}/></label>{[["name","Nom complet","text"],["email","Adresse email","email"],["subject","Sujet","text"]].map(([key,label,type])=><label key={key}><span>{label}</span><input type={type} autoComplete={key==="name"?"name":key==="email"?"email":"off"} {...register(key as keyof FormData)}/>{errors[key as keyof FormData]&&<small>{errors[key as keyof FormData]?.message}</small>}</label>)}<label><span>Votre message</span><textarea rows={5} {...register("message")}/>{errors.message&&<small>{errors.message.message}</small>}</label><label className="consent"><input type="checkbox" {...register("consent")}/><span>J’accepte que mes informations soient transmises à l’association afin de répondre à ma demande.</span></label>{errors.consent&&<small>{errors.consent.message}</small>}<button className="solid-button" type="submit" disabled={status==="sending"}>{status==="sending"?"Envoi en cours…":"Envoyer le message"} {status!=="sending"&&<ArrowRight size={17}/>}</button>{status==="success"&&<div className="form-notice success" role="status"><p><b>Votre message a bien été envoyé.</b></p><p>Un accusé de réception vient de vous être envoyé et l’association vous répondra depuis {CONTACT_EMAIL}.</p></div>}{status==="error"&&<div className="form-notice error" role="alert"><p><b>Le message n’a pas pu être envoyé.</b></p><p>{errorMessage?`${errorMessage} `:""}Vous pouvez réessayer ou écrire directement à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p></div>}</form></section></main>}
 
 function MentionsLegales(){return <main><PageHero index="07" title="Mentions légales & confidentialité." lede="Transparence, cadre juridique et respect de la vie privée."/><div className="legal-page"><section className="legal-section"><Eyebrow>Éditeur</Eyebrow><h2>1. Identification de l’association</h2><p><b>Dénomination :</b> Association Un sourire pour Tissem et tous les enfants</p><p><b>Forme juridique :</b> Association loi 1901 à but non lucratif (déclarée en mars 2016)</p><p><b>Numéro RNA :</b> W452013082 (Préfecture du Loiret)</p><p><b>SIREN :</b> 895 052 363 · <b>SIRET :</b> 895 052 363 00010</p><p><b>Siège social :</b> 48 Rue de Monteloup, 45380 La Chapelle-Saint-Mesmin, France</p><p><b>Présidente & Directrice de la publication :</b> Jamila Tighadouini</p><p><b>Téléphone :</b> <a href="tel:+33617037095">06 17 03 70 95</a></p><p><b>Lieu des activités régulières :</b> L’Argonaute, 73 boulevard Marie Stuart, 45100 Orléans</p></section><section className="legal-section"><Eyebrow>Hébergement</Eyebrow><h2>2. Hébergement du site</h2><p>Ce site est hébergé sur des infrastructures cloud sécurisées conformes aux normes européennes de protection des données (RGPD).</p></section><section className="legal-section"><Eyebrow>Dons & Paiements</Eyebrow><h2>3. Collecte de dons et paiements sécurisés</h2><p>Les dons et adhésions sont collectés via la plateforme officielle agréée <b>HelloAsso</b>. Aucune coordonnée bancaire n’est stockée ou traitée par le présent site web.</p></section><section className="legal-section"><Eyebrow>RGPD</Eyebrow><h2>4. Protection des données personnelles</h2><p>Les données transmises via le formulaire de contact sont strictement utilisées pour répondre aux demandes des utilisateurs. Elles ne sont ni cédées, ni vendues. Vous disposez d’un droit d’accès, de rectification et d’effacement en contactant directement l’association.</p></section><section className="legal-section"><Eyebrow>Propriété</Eyebrow><h2>5. Propriété intellectuelle</h2><p>L’ensemble des contenus, textes, photographies d’activités et visuels (notamment la Mallette Handi’Cap) sont la propriété de l’association ou diffusés avec accord. Toute reproduction non autorisée est interdite.</p></section><div style={{marginTop:"30px"}}><ArrowLink to="/">Retourner à l’accueil</ArrowLink></div></div></main>}
 

@@ -1483,12 +1483,14 @@ blockquote {
   font-family: "Fraunces", serif;
   font-size: 32px;
   color: var(--pink);
-  display: inline-block;
-  margin: 15px 0 30px;
+  display: block;
+  width: fit-content;
+  margin: 15px 0 8px;
 }
 .contact-email {
-  display: inline-block;
-  margin: 10px 0 24px;
+  display: block;
+  width: fit-content;
+  margin: 0 0 26px;
   color: var(--deep);
   font-size: 15px;
   font-weight: 700;
