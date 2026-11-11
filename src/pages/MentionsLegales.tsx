@@ -1,106 +1,110 @@
-import { ShieldCheck, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { PageBanner } from "../components/common/PageBanner";
-import { ASSOCIATION_INFO } from "../data/siteData";
+import { ArrowRight } from "lucide-react";
 
 export function MentionsLegales() {
   return (
-    <>
-      <PageBanner title="Mentions Légales" icon={ShieldCheck} />
-      <main className="py-16">
-        <div className="mx-auto max-w-4xl px-5 space-y-10 text-stone-700 leading-relaxed">
-          {/* Bloc 1 */}
-          <section className="card p-8">
-            <h2 className="font-display text-2xl font-extrabold text-[#73143e]">
-              1. Informations légales sur l’éditeur du site
-            </h2>
-            <div className="mt-4 space-y-2 text-sm">
-              <p>
-                <b>Dénomination sociale :</b> {ASSOCIATION_INFO.name}
-              </p>
-              <p>
-                <b>Forme juridique :</b> {ASSOCIATION_INFO.legalStatus}
-              </p>
-              <p>
-                <b>Date de création :</b> Déclarée en mars {ASSOCIATION_INFO.foundationYear}
-              </p>
-              <p>
-                <b>Numéro RNA :</b> {ASSOCIATION_INFO.rna} (Préfecture du Loiret)
-              </p>
-              <p>
-                <b>Numéro SIREN :</b> {ASSOCIATION_INFO.siren}
-              </p>
-              <p>
-                <b>Numéro SIRET :</b> {ASSOCIATION_INFO.siret}
-              </p>
-              <p>
-                <b>Siège social :</b> {ASSOCIATION_INFO.address}, {ASSOCIATION_INFO.postalCode} {ASSOCIATION_INFO.city} (France)
-              </p>
-              <p>
-                <b>Directrice de la publication et Présidente :</b> {ASSOCIATION_INFO.president}
-              </p>
-              <p>
-                <b>Réseau social officiel :</b> Instagram {ASSOCIATION_INFO.instagram}
-              </p>
-            </div>
-          </section>
-
-          {/* Bloc 2 */}
-          <section className="card p-8">
-            <h2 className="font-display text-2xl font-extrabold text-[#73143e]">
-              2. Hébergement du site
-            </h2>
-            <p className="mt-4 text-sm leading-6">
-              Ce site web est hébergé sur des infrastructures cloud sécurisées conformes aux normes européennes de protection des données.
+    <main>
+      <section className="page-hero">
+        <div>
+          <span>07</span>
+          <div>
+            <p className="eyebrow">
+              <span /> Un sourire pour Tissem
             </p>
-          </section>
-
-          {/* Bloc 3 */}
-          <section className="card p-8">
-            <h2 className="font-display text-2xl font-extrabold text-[#73143e]">
-              3. Dons et paiements en ligne
-            </h2>
-            <p className="mt-4 text-sm leading-6">
-              Les dons et cotisations d’adhésion pour <b>{ASSOCIATION_INFO.name}</b> sont traités via la plateforme agréée <b>HelloAsso</b> (solution de paiement 100% sécurisée dédiée aux associations françaises). Aucune coordonnée bancaire n’est traitée, transmise ni enregistrée sur le serveur du présent site.
-            </p>
-          </section>
-
-          {/* Bloc 4 */}
-          <section className="card p-8">
-            <h2 className="font-display text-2xl font-extrabold text-[#73143e]">
-              4. Données personnelles & RGPD
-            </h2>
-            <div className="mt-4 space-y-3 text-sm leading-6">
-              <p>
-                Conformément au Règlement Général sur la Protection des Données (RGPD 2016/679) et à la loi « Informatique et Libertés », les informations recueillies dans le formulaire de contact font l'objet d'un traitement uniquement destiné à répondre aux demandes des utilisateurs.
-              </p>
-              <p>
-                Ces informations ne font l'objet d'aucune cession, vente ni échange commercial avec des tiers.
-              </p>
-              <p>
-                Vous bénéficiez d'un droit d'accès, de rectification et de suppression des données vous concernant, que vous pouvez exercer en contactant directement l’association.
-              </p>
-            </div>
-          </section>
-
-          {/* Bloc 5 */}
-          <section className="card p-8">
-            <h2 className="font-display text-2xl font-extrabold text-[#73143e]">
-              5. Propriété intellectuelle
-            </h2>
-            <p className="mt-4 text-sm leading-6">
-              Tous les éléments constitutifs du présent site (textes, logos, visuels, charte graphique) sont protégés par le droit d'auteur. Toute reproduction totale ou partielle sans autorisation expresse de l'association est interdite.
-            </p>
-          </section>
-
-          <div className="text-center pt-4">
-            <Link to="/" className="btn-primary">
-              Retour à l’accueil <ArrowRight size={17} />
-            </Link>
+            <h1>Mentions légales & confidentialité.</h1>
+            <p>Transparence, cadre juridique et respect de la vie privée.</p>
           </div>
         </div>
-      </main>
-    </>
+      </section>
+
+      <div className="legal-page">
+        <section className="legal-section">
+          <p className="eyebrow">
+            <span /> Éditeur
+          </p>
+          <h2>1. Identification de l’association</h2>
+          <p>
+            <b>Dénomination :</b> Association Un sourire pour Tissem et tous les enfants
+          </p>
+          <p>
+            <b>Forme juridique :</b> Association loi 1901 à but non lucratif (déclarée en mars 2016)
+          </p>
+          <p>
+            <b>Numéro RNA :</b> W452013082 (Préfecture du Loiret)
+          </p>
+          <p>
+            <b>SIREN :</b> 895 052 363 · <b>SIRET :</b> 895 052 363 00010
+          </p>
+          <p>
+            <b>Siège social :</b> 48 Rue de Monteloup, 45380 La Chapelle-Saint-Mesmin, France
+          </p>
+          <p>
+            <b>Présidente & Directrice de la publication :</b> Jamila Tighadouini
+          </p>
+          <p>
+            <b>Téléphone :</b> <a href="tel:+33617037095">06 17 03 70 95</a>
+          </p>
+          <p>
+            <b>Lieu des activités régulières :</b> L’Argonaute, 73 boulevard Marie Stuart, 45100 Orléans
+          </p>
+          <p>
+            <b>Compte Instagram officiel :</b>{" "}
+            <a
+              href="https://www.instagram.com/un_sourire_pour_tissem"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              @un_sourire_pour_tissem ↗
+            </a>
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <p className="eyebrow">
+            <span /> Hébergement
+          </p>
+          <h2>2. Hébergement du site</h2>
+          <p>
+            Ce site est hébergé sur des infrastructures cloud sécurisées conformes aux normes européennes de protection des données (RGPD).
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <p className="eyebrow">
+            <span /> Dons & Paiements
+          </p>
+          <h2>3. Collecte de dons et paiements sécurisés</h2>
+          <p>
+            Les dons et adhésions sont collectés via la plateforme officielle agréée <b>HelloAsso</b>. Aucune donnée bancaire n’est stockée ou traitée par le présent site web.
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <p className="eyebrow">
+            <span /> RGPD
+          </p>
+          <h2>4. Protection des données personnelles</h2>
+          <p>
+            Les données transmises via le formulaire de contact sont strictement utilisées pour répondre aux demandes des utilisateurs. Elles ne sont ni cédées, ni vendues. Vous disposez d’un droit d’accès, de rectification et d’effacement en contactant directement l’association.
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <p className="eyebrow">
+            <span /> Propriété
+          </p>
+          <h2>5. Propriété intellectuelle</h2>
+          <p>
+            L’ensemble des contenus, textes, photographies d’activités et visuels (notamment la Mallette Handi’Cap) sont la propriété de l’association ou diffusés avec accord. Toute reproduction non autorisée est interdite.
+          </p>
+        </section>
+
+        <div style={{ marginTop: "30px" }}>
+          <Link to="/" className="arrow-link">
+            Retourner à l’accueil <ArrowRight size={17} />
+          </Link>
+        </div>
+      </div>
+    </main>
   );
 }
-
