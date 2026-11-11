@@ -17,7 +17,7 @@ const OFFICIAL = {
 const INSTAGRAM_URL = "https://www.instagram.com/un_sourire_pour_tissem";
 const HELLOASSO_URL = "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
 const DONATION_URL = `${HELLOASSO_URL}/collectes/100000-euros-pour-faire-grandir-les-sourires`;
-const CONTACT_EMAIL = "Mk45mk66@gmail.com";
+const CONTACT_EMAIL = "Unsourirepourtissem@gmail.com";
 const remote = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1400&q=82`;
 
 const actions = [
