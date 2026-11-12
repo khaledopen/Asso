@@ -1,3 +1,5 @@
+import nodemailer from "nodemailer";
+
 interface ContactPayload {
   name?: unknown;
   email?: unknown;
@@ -21,12 +23,66 @@ interface BrevoEmailPayload {
   textContent: string;
 }
 
+interface EmailContentSpec {
+  recipient: string;
+  visitorEmail: string;
+  visitorName: string;
+  adminSubject: string;
+  adminText: string;
+  adminHtml: string;
+  visitorSubject: string;
+  visitorText: string;
+  visitorHtml: string;
+}
+
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 const BREVO_SENDERS_URL = "https://api.brevo.com/v3/senders";
 const DEFAULT_CONTACT_EMAIL = "Unsourirepourtissem@gmail.com";
 const DEFAULT_SITE_URL = "https://asso-pied.vercel.app";
 const HELLOASSO_URL =
   "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
+
+const FREE_MAIL_DOMAINS = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "yahoo.com",
+  "yahoo.fr",
+  "hotmail.com",
+  "hotmail.fr",
+  "outlook.com",
+  "outlook.fr",
+  "live.fr",
+  "orange.fr",
+  "wanadoo.fr",
+  "free.fr",
+  "sfr.fr",
+  "laposte.net",
+  "icloud.com",
+]);
+
+class BrevoApiError extends Error {
+  status: number;
+  code?: string;
+  brevoMessage?: string;
+
+  constructor(status: number, code?: string, brevoMessage?: string) {
+    super(
+      `Brevo API ${status}${code ? ` (${code})` : ""}: ${brevoMessage || "unknown error"}`,
+    );
+    this.status = status;
+    this.code = code;
+    this.brevoMessage = brevoMessage;
+  }
+}
+
+class ContactDeliveryError extends Error {
+  status: number;
+
+  constructor(message: string, status = 502) {
+    super(message);
+    this.status = status;
+  }
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -43,6 +99,11 @@ function cleanHeaderValue(value: string): string {
 
 function formatMessageHtml(value: string): string {
   return escapeHtml(value).replace(/\r?\n/g, "<br />");
+}
+
+function isFreeWebmail(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase() || "";
+  return FREE_MAIL_DOMAINS.has(domain);
 }
 
 function getSiteUrl(request: Request): string {
@@ -140,17 +201,10 @@ function buildEmailShell({
 </html>`;
 }
 
-class BrevoApiError extends Error {
-  status: number;
-  code?: string;
-  brevoMessage?: string;
-
-  constructor(status: number, code?: string, brevoMessage?: string) {
-    super(`Brevo API ${status}${code ? ` (${code})` : ""}: ${brevoMessage || "unknown error"}`);
-    this.status = status;
-    this.code = code;
-    this.brevoMessage = brevoMessage;
-  }
+function isSenderValidationError(error: unknown): boolean {
+  if (!(error instanceof BrevoApiError)) return false;
+  const raw = `${error.code || ""} ${error.brevoMessage || ""}`.toLowerCase();
+  return raw.includes("sender") || raw.includes("not valid");
 }
 
 function mapBrevoErrorMessage(error: unknown, senderEmail: string): string {
@@ -160,31 +214,30 @@ function mapBrevoErrorMessage(error: unknown, senderEmail: string): string {
 
   const raw = `${error.code || ""} ${error.brevoMessage || ""}`.toLowerCase();
   if (raw.includes("ip")) {
-    return `Brevo bloque l’IP dynamique de Vercel : dans Brevo → Sécurité → Adresses IP autorisées, désactivez « Bloquer les adresses IP inconnues ».`;
+    return "Brevo bloque l’IP dynamique de Vercel : dans Brevo → Sécurité → Adresses IP autorisées, désactivez « Bloquer les adresses IP inconnues ».";
   }
   if (isSenderValidationError(error)) {
     return `L’adresse expéditrice (${senderEmail}) n’est pas validée dans Brevo → Expéditeurs.`;
   }
-  if (raw.includes("activat") || raw.includes("suspended") || raw.includes("disabled")) {
-    return `Le service transactionnel Brevo n’est pas encore activé sur ce compte (finalisez la vérification du profil Brevo).`;
+  if (
+    raw.includes("activat") ||
+    raw.includes("suspended") ||
+    raw.includes("disabled")
+  ) {
+    return "Le service transactionnel Brevo n’est pas encore activé sur ce compte (finalisez la vérification du profil Brevo).";
   }
-  if (error.status === 401 || raw.includes("key not found") || raw.includes("unauthorized")) {
-    return `Clé API Brevo refusée : vérifiez que BREVO_API_KEY commence bien par xkeysib- dans Vercel puis redéployez.`;
+  if (
+    error.status === 401 ||
+    raw.includes("key not found") ||
+    raw.includes("unauthorized")
+  ) {
+    return "Clé API Brevo refusée : vérifiez que BREVO_API_KEY commence bien par xkeysib- dans Vercel puis redéployez.";
   }
 
   return `Erreur Brevo (${error.status}${error.code ? ` · ${error.code}` : ""}).`;
 }
 
-function isSenderValidationError(error: unknown): boolean {
-  if (!(error instanceof BrevoApiError)) return false;
-  const raw = `${error.code || ""} ${error.brevoMessage || ""}`.toLowerCase();
-  return raw.includes("sender") || raw.includes("not valid");
-}
-
-async function findActiveBrevoSender(
-  apiKey: string,
-  excludedEmail: string,
-): Promise<string | null> {
+async function listActiveBrevoSenders(apiKey: string): Promise<string[]> {
   try {
     const response = await fetch(BREVO_SENDERS_URL, {
       method: "GET",
@@ -193,19 +246,16 @@ async function findActiveBrevoSender(
         "api-key": apiKey,
       },
     });
-    if (!response.ok) return null;
+    if (!response.ok) return [];
     const data = (await response.json()) as {
       senders?: Array<{ email?: string; active?: boolean }>;
     };
-    const active = data.senders?.find(
-      (s) =>
-        s.active === true &&
-        typeof s.email === "string" &&
-        s.email.toLowerCase() !== excludedEmail.toLowerCase(),
-    );
-    return active?.email?.trim() || null;
+    return (data.senders || [])
+      .filter((s) => s.active === true && typeof s.email === "string")
+      .map((s) => s.email!.trim())
+      .filter(Boolean);
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -247,6 +297,170 @@ async function sendBrevoEmail(
   }
 
   return parsed;
+}
+
+async function deliverViaGmailSmtp(
+  gmailUser: string,
+  gmailPass: string,
+  spec: EmailContentSpec,
+): Promise<{ messageId: string | null }> {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailUser,
+      pass: gmailPass,
+    },
+  });
+
+  const safeVisitorName = spec.visitorName.replace(/"/g, "");
+  let adminInfo: { messageId?: string } | null = null;
+  try {
+    adminInfo = await transporter.sendMail({
+      from: `"Un sourire pour Tissem — Site web" <${gmailUser}>`,
+      to: spec.recipient,
+      replyTo: `"${safeVisitorName}" <${spec.visitorEmail}>`,
+      subject: spec.adminSubject,
+      text: spec.adminText,
+      html: spec.adminHtml,
+    });
+  } catch (error) {
+    console.error("Erreur SMTP Gmail (notification):", error);
+    const msg = error instanceof Error ? error.message.toLowerCase() : "";
+    if (
+      msg.includes("535") ||
+      msg.includes("invalid login") ||
+      msg.includes("eauth") ||
+      msg.includes("username and password")
+    ) {
+      throw new ContactDeliveryError(
+        `Identifiants Gmail refusés sur Vercel : GMAIL_USER (${gmailUser}) doit correspondre au compte Google qui a généré GMAIL_APP_PASSWORD (le destinataire reste ${spec.recipient}).`,
+        502,
+      );
+    }
+    throw new ContactDeliveryError(
+      "Impossible d’envoyer le message via Gmail SMTP pour le moment.",
+      502,
+    );
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"Un sourire pour Tissem" <${gmailUser}>`,
+      to: `"${safeVisitorName}" <${spec.visitorEmail}>`,
+      replyTo: spec.recipient,
+      subject: spec.visitorSubject,
+      text: spec.visitorText,
+      html: spec.visitorHtml,
+    });
+  } catch (error) {
+    console.warn("Accusé de réception visiteur non envoyé (Gmail):", error);
+  }
+
+  return { messageId: adminInfo?.messageId ?? null };
+}
+
+async function deliverViaBrevo(
+  apiKey: string,
+  explicitSender: string | undefined,
+  spec: EmailContentSpec,
+): Promise<{ messageId: string | null }> {
+  let effectiveSenderEmail = (
+    explicitSender ||
+    spec.recipient ||
+    DEFAULT_CONTACT_EMAIL
+  ).trim();
+
+  // If no custom-domain sender is pinned, prefer any verified non-free-webmail
+  // sender in Brevo to avoid DMARC filtering on @gmail.com senders.
+  if (!explicitSender) {
+    const activeSenders = await listActiveBrevoSenders(apiKey);
+    const customDomainSender = activeSenders.find((s) => !isFreeWebmail(s));
+    const nonSelfSender = activeSenders.find(
+      (s) => s.toLowerCase() !== spec.recipient.toLowerCase(),
+    );
+    if (customDomainSender) {
+      effectiveSenderEmail = customDomainSender;
+    } else if (
+      !activeSenders.some(
+        (s) => s.toLowerCase() === effectiveSenderEmail.toLowerCase(),
+      ) &&
+      activeSenders[0]
+    ) {
+      effectiveSenderEmail = activeSenders[0];
+    } else if (
+      effectiveSenderEmail.toLowerCase() === spec.recipient.toLowerCase() &&
+      nonSelfSender
+    ) {
+      effectiveSenderEmail = nonSelfSender;
+    }
+  }
+
+  const buildAdminPayload = (fromEmail: string): BrevoEmailPayload => ({
+    sender: { name: "Un sourire pour Tissem — Site web", email: fromEmail },
+    to: [{ email: spec.recipient, name: "Un sourire pour Tissem" }],
+    replyTo: { email: spec.visitorEmail, name: spec.visitorName },
+    subject: spec.adminSubject,
+    textContent: spec.adminText,
+    htmlContent: spec.adminHtml,
+  });
+
+  let adminResult: { messageId?: string } | null = null;
+  try {
+    adminResult = await sendBrevoEmail(
+      apiKey,
+      buildAdminPayload(effectiveSenderEmail),
+    );
+  } catch (error) {
+    let sentWithFallback = false;
+    if (!explicitSender && isSenderValidationError(error)) {
+      const activeSenders = await listActiveBrevoSenders(apiKey);
+      const fallback = activeSenders.find(
+        (s) => s.toLowerCase() !== effectiveSenderEmail.toLowerCase(),
+      );
+      if (fallback) {
+        try {
+          effectiveSenderEmail = fallback;
+          adminResult = await sendBrevoEmail(
+            apiKey,
+            buildAdminPayload(effectiveSenderEmail),
+          );
+          sentWithFallback = true;
+        } catch (fallbackError) {
+          console.error(
+            "Erreur d'envoi Brevo (secours expéditeur):",
+            fallbackError,
+          );
+          throw new ContactDeliveryError(
+            mapBrevoErrorMessage(fallbackError, effectiveSenderEmail),
+            502,
+          );
+        }
+      }
+    }
+
+    if (!sentWithFallback) {
+      console.error("Erreur d'envoi Brevo (notification):", error);
+      throw new ContactDeliveryError(
+        mapBrevoErrorMessage(error, effectiveSenderEmail),
+        502,
+      );
+    }
+  }
+
+  try {
+    await sendBrevoEmail(apiKey, {
+      sender: { name: "Un sourire pour Tissem", email: effectiveSenderEmail },
+      to: [{ email: spec.visitorEmail, name: spec.visitorName }],
+      replyTo: { email: spec.recipient, name: "Un sourire pour Tissem" },
+      subject: spec.visitorSubject,
+      textContent: spec.visitorText,
+      htmlContent: spec.visitorHtml,
+    });
+  } catch (error) {
+    console.warn("Accusé de réception visiteur non envoyé (Brevo):", error);
+  }
+
+  return { messageId: adminResult?.messageId ?? null };
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -292,29 +506,27 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const apiKey = process.env.BREVO_API_KEY?.trim();
-  // Le destinataire est volontairement verrouillé pour éviter qu'une ancienne
-  // variable Vercel redirige les messages du formulaire vers une autre boîte.
+  // Le destinataire est volontairement verrouillé sur l’adresse officielle
+  // pour éviter qu’une ancienne variable Vercel redirige les messages ailleurs.
   const recipient = DEFAULT_CONTACT_EMAIL;
-  const explicitSender = process.env.BREVO_SENDER_EMAIL?.trim();
-  let effectiveSenderEmail = (
-    explicitSender ||
-    recipient ||
-    DEFAULT_CONTACT_EMAIL
-  ).trim();
+  const gmailUser = process.env.GMAIL_USER?.trim();
+  const gmailPass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "").trim();
+  const brevoApiKey = process.env.BREVO_API_KEY?.trim();
+  const brevoSender = process.env.BREVO_SENDER_EMAIL?.trim();
 
-  if (!apiKey) {
+  const hasGmailSmtp = Boolean(gmailUser && gmailPass);
+  if (!hasGmailSmtp && !brevoApiKey) {
     return Response.json(
       {
         ok: false,
         error:
-          "Le service d’envoi Brevo n’est pas encore configuré sur Vercel (BREVO_API_KEY).",
+          "Service d’envoi non configuré sur Vercel (GMAIL_USER/GMAIL_APP_PASSWORD ou BREVO_API_KEY requis).",
       },
       { status: 503 },
     );
   }
 
-  if (apiKey.startsWith("xsmtpsib-")) {
+  if (!hasGmailSmtp && brevoApiKey?.startsWith("xsmtpsib-")) {
     return Response.json(
       {
         ok: false,
@@ -373,61 +585,6 @@ export async function POST(request: Request): Promise<Response> {
     footerNote: `Message envoyé depuis <a href="${escapeHtml(siteUrl)}" style="color:#951b51;text-decoration:none;font-weight:700;">${escapeHtml(siteUrl)}</a> · Orléans &amp; Loiret`,
   });
 
-  const buildAdminPayload = (fromEmail: string): BrevoEmailPayload => ({
-    sender: { name: "Un sourire pour Tissem — Site web", email: fromEmail },
-    to: [{ email: recipient, name: "Un sourire pour Tissem" }],
-    replyTo: { email, name: headerName },
-    subject: `[Site web] ${headerSubject} — ${headerName}`,
-    textContent: `Nouveau message reçu depuis le site Un sourire pour Tissem\n\nNom : ${name}\nEmail : ${email}\nSujet : ${subject}\nReçu le : ${receivedAt}\n\nMessage :\n${message}`,
-    htmlContent: adminHtml,
-  });
-
-  let adminResult: { messageId?: string } | null = null;
-  try {
-    adminResult = await sendBrevoEmail(
-      apiKey,
-      buildAdminPayload(effectiveSenderEmail),
-    );
-  } catch (error) {
-    let sentWithFallback = false;
-    if (!explicitSender && isSenderValidationError(error)) {
-      const activeSender = await findActiveBrevoSender(
-        apiKey,
-        effectiveSenderEmail,
-      );
-      if (activeSender) {
-        try {
-          effectiveSenderEmail = activeSender;
-          adminResult = await sendBrevoEmail(
-            apiKey,
-            buildAdminPayload(effectiveSenderEmail),
-          );
-          sentWithFallback = true;
-        } catch (fallbackError) {
-          console.error(
-            "Erreur d'envoi Brevo (secours expéditeur):",
-            fallbackError,
-          );
-          return Response.json(
-            {
-              ok: false,
-              error: mapBrevoErrorMessage(fallbackError, effectiveSenderEmail),
-            },
-            { status: 502 },
-          );
-        }
-      }
-    }
-
-    if (!sentWithFallback) {
-      console.error("Erreur d'envoi Brevo (notification):", error);
-      return Response.json(
-        { ok: false, error: mapBrevoErrorMessage(error, effectiveSenderEmail) },
-        { status: 502 },
-      );
-    }
-  }
-
   const visitorBodyHtml = `
     <p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#1c1719;">
       Bonjour <strong>${safeName}</strong>,
@@ -466,21 +623,45 @@ export async function POST(request: Request): Promise<Response> {
     footerNote: `Loi 1901 · RNA W452013082 · Orléans &amp; Loiret · <a href="tel:+33617037095" style="color:#951b51;text-decoration:none;font-weight:700;">06 17 03 70 95</a>`,
   });
 
+  const spec: EmailContentSpec = {
+    recipient,
+    visitorEmail: email,
+    visitorName: headerName,
+    adminSubject: `[Site web] ${headerSubject} — ${headerName}`,
+    adminText: `Nouveau message reçu depuis le site Un sourire pour Tissem\n\nNom : ${name}\nEmail : ${email}\nSujet : ${subject}\nReçu le : ${receivedAt}\n\nMessage :\n${message}`,
+    adminHtml,
+    visitorSubject: "Merci pour votre message — Un sourire pour Tissem",
+    visitorText: `Bonjour ${name},\n\nNous avons bien reçu votre message concernant "${subject}". Notre équipe bénévole vous répondra dans les plus brefs délais.\n\nVotre message :\n${message}\n\nAssociation Un sourire pour Tissem et tous les enfants\nOrléans & Loiret · 06 17 03 70 95`,
+    visitorHtml,
+  };
+
   try {
-    await sendBrevoEmail(apiKey, {
-      sender: { name: "Un sourire pour Tissem", email: effectiveSenderEmail },
-      to: [{ email, name: headerName }],
-      replyTo: { email: recipient, name: "Un sourire pour Tissem" },
-      subject: "Merci pour votre message — Un sourire pour Tissem",
-      textContent: `Bonjour ${name},\n\nNous avons bien reçu votre message concernant "${subject}". Notre équipe bénévole vous répondra dans les plus brefs délais.\n\nVotre message :\n${message}\n\nAssociation Un sourire pour Tissem et tous les enfants\nOrléans & Loiret · 06 17 03 70 95`,
-      htmlContent: visitorHtml,
+    if (hasGmailSmtp) {
+      const result = await deliverViaGmailSmtp(gmailUser!, gmailPass!, spec);
+      return Response.json({
+        ok: true,
+        transport: "gmail-smtp",
+        messageId: result.messageId,
+      });
+    }
+
+    const result = await deliverViaBrevo(brevoApiKey!, brevoSender, spec);
+    return Response.json({
+      ok: true,
+      transport: "brevo",
+      messageId: result.messageId,
     });
   } catch (error) {
-    console.warn("Accusé de réception visiteur non envoyé:", error);
+    if (error instanceof ContactDeliveryError) {
+      return Response.json(
+        { ok: false, error: error.message },
+        { status: error.status },
+      );
+    }
+    console.error("Erreur inattendue lors de l’envoi du message:", error);
+    return Response.json(
+      { ok: false, error: "Impossible d’envoyer le message pour le moment." },
+      { status: 502 },
+    );
   }
-
-  return Response.json({
-    ok: true,
-    messageId: adminResult?.messageId ?? null,
-  });
 }
