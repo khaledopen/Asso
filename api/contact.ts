@@ -23,7 +23,7 @@ interface BrevoEmailPayload {
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 const BREVO_SENDERS_URL = "https://api.brevo.com/v3/senders";
-const DEFAULT_CONTACT_EMAIL = "Unsourirepourtissem@gmail.com";
+const DEFAULT_CONTACT_EMAIL = "Mk45mk66@gmail.com";
 const DEFAULT_SITE_URL = "https://asso-pied.vercel.app";
 const HELLOASSO_URL =
   "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
@@ -212,7 +212,7 @@ async function findActiveBrevoSender(
 async function sendBrevoEmail(
   apiKey: string,
   payload: BrevoEmailPayload,
-): Promise<void> {
+): Promise<{ messageId?: string } | null> {
   const response = await fetch(BREVO_API_URL, {
     method: "POST",
     headers: {
@@ -223,20 +223,30 @@ async function sendBrevoEmail(
     body: JSON.stringify(payload),
   });
 
+  const rawText = await response.text().catch(() => "");
+  let parsed: { code?: string; message?: string; messageId?: string } | null =
+    null;
+  try {
+    parsed = rawText
+      ? (JSON.parse(rawText) as {
+          code?: string;
+          message?: string;
+          messageId?: string;
+        })
+      : null;
+  } catch {
+    parsed = null;
+  }
+
   if (!response.ok) {
-    const rawText = await response.text().catch(() => "");
-    let parsed: { code?: string; message?: string } | null = null;
-    try {
-      parsed = JSON.parse(rawText) as { code?: string; message?: string };
-    } catch {
-      parsed = null;
-    }
     throw new BrevoApiError(
       response.status,
       parsed?.code,
       parsed?.message || rawText,
     );
   }
+
+  return parsed;
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -372,8 +382,12 @@ export async function POST(request: Request): Promise<Response> {
     htmlContent: adminHtml,
   });
 
+  let adminResult: { messageId?: string } | null = null;
   try {
-    await sendBrevoEmail(apiKey, buildAdminPayload(effectiveSenderEmail));
+    adminResult = await sendBrevoEmail(
+      apiKey,
+      buildAdminPayload(effectiveSenderEmail),
+    );
   } catch (error) {
     let sentWithFallback = false;
     if (!explicitSender && isSenderValidationError(error)) {
@@ -384,7 +398,10 @@ export async function POST(request: Request): Promise<Response> {
       if (activeSender) {
         try {
           effectiveSenderEmail = activeSender;
-          await sendBrevoEmail(apiKey, buildAdminPayload(effectiveSenderEmail));
+          adminResult = await sendBrevoEmail(
+            apiKey,
+            buildAdminPayload(effectiveSenderEmail),
+          );
           sentWithFallback = true;
         } catch (fallbackError) {
           console.error(
@@ -462,5 +479,8 @@ export async function POST(request: Request): Promise<Response> {
     console.warn("Accusé de réception visiteur non envoyé:", error);
   }
 
-  return Response.json({ ok: true });
+  return Response.json({
+    ok: true,
+    messageId: adminResult?.messageId ?? null,
+  });
 }
