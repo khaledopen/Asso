@@ -23,7 +23,7 @@ interface BrevoEmailPayload {
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 const BREVO_SENDERS_URL = "https://api.brevo.com/v3/senders";
-const DEFAULT_CONTACT_EMAIL = "Mk45mk66@gmail.com";
+const DEFAULT_CONTACT_EMAIL = "konesory321@gmail.com";
 const DEFAULT_SITE_URL = "https://asso-pied.vercel.app";
 const HELLOASSO_URL =
   "https://www.helloasso.com/associations/association-un-sourire-pour-tissem-et-tous-les-enfants";
