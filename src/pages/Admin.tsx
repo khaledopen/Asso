@@ -865,6 +865,17 @@ export default function Admin() {
                     }
                   />
                 </Field>
+                <Field label="Lien TikTok">
+                  <input
+                    value={draft.brand.tiktokUrl}
+                    onChange={(e) =>
+                      updateDraft((p) => ({
+                        ...p,
+                        brand: { ...p.brand, tiktokUrl: e.target.value },
+                      }))
+                    }
+                  />
+                </Field>
                 <Field label="Lien officiel HelloAsso">
                   <input
                     value={draft.brand.helloassoUrl}
@@ -876,18 +887,18 @@ export default function Admin() {
                     }
                   />
                 </Field>
+                <Field label="Lien de la collecte / bouton de don HelloAsso">
+                  <input
+                    value={draft.brand.donationUrl}
+                    onChange={(e) =>
+                      updateDraft((p) => ({
+                        ...p,
+                        brand: { ...p.brand, donationUrl: e.target.value },
+                      }))
+                    }
+                  />
+                </Field>
               </div>
-              <Field label="Lien de la collecte / bouton de don HelloAsso">
-                <input
-                  value={draft.brand.donationUrl}
-                  onChange={(e) =>
-                    updateDraft((p) => ({
-                      ...p,
-                      brand: { ...p.brand, donationUrl: e.target.value },
-                    }))
-                  }
-                />
-              </Field>
               <ImageField
                 label="Logo de l’association"
                 value={draft.brand.logo}

@@ -38,6 +38,10 @@ function InstagramIcon({ size = 18 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>;
 }
 
+function TikTokIcon({ size = 18 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>;
+}
+
 function Logo() {
   const { content } = useSiteContent();
   return (
@@ -66,9 +70,18 @@ function Header() {
               {label}
             </NavLink>
           ))}
-          <a href={content.brand.instagramUrl} target="_blank" rel="noopener noreferrer" className="insta-link" title="Instagram @un_sourire_pour_tissem" aria-label="Instagram">
-            <InstagramIcon size={19}/>
-          </a>
+          <div className="nav-socials">
+            {content.brand.instagramUrl && (
+              <a href={content.brand.instagramUrl} target="_blank" rel="noopener noreferrer" className="insta-link" title="Instagram @un_sourire_pour_tissem" aria-label="Instagram">
+                <InstagramIcon size={19}/>
+              </a>
+            )}
+            {content.brand.tiktokUrl && (
+              <a href={content.brand.tiktokUrl} target="_blank" rel="noopener noreferrer" className="insta-link" title="TikTok @unsourirepourtissem" aria-label="TikTok">
+                <TikTokIcon size={19}/>
+              </a>
+            )}
+          </div>
           <Link to="/faire-un-don" className="donate-link">Faire un don <span>↗</span></Link>
         </nav>
         <button className="menu-button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label="Ouvrir le menu">
@@ -80,10 +93,17 @@ function Header() {
           <motion.nav className="mobile-nav" initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} aria-label="Navigation mobile">
             <div>
               {nav.map(([to, label]) => <NavLink key={to} to={to}>{label}</NavLink>)}
-              <div style={{ padding: "11px 0", borderBottom: "1px solid var(--line)" }}>
-                <a href={content.brand.instagramUrl} target="_blank" rel="noopener noreferrer" className="insta-link" title="Instagram" aria-label="Instagram">
-                  <InstagramIcon size={20}/>
-                </a>
+              <div className="mobile-socials">
+                {content.brand.instagramUrl && (
+                  <a href={content.brand.instagramUrl} target="_blank" rel="noopener noreferrer" className="insta-link" title="Instagram" aria-label="Instagram">
+                    <InstagramIcon size={20}/>
+                  </a>
+                )}
+                {content.brand.tiktokUrl && (
+                  <a href={content.brand.tiktokUrl} target="_blank" rel="noopener noreferrer" className="insta-link" title="TikTok" aria-label="TikTok">
+                    <TikTokIcon size={20}/>
+                  </a>
+                )}
               </div>
               <Link to="/faire-un-don">Faire un don</Link>
             </div>

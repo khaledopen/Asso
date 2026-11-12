@@ -5,6 +5,7 @@ export interface BrandSettings {
   phone: string;
   contactEmail: string;
   instagramUrl: string;
+  tiktokUrl: string;
   helloassoUrl: string;
   donationUrl: string;
   footerDescription: string;
@@ -211,6 +212,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     phone: "06 17 03 70 95",
     contactEmail: "Unsourirepourtissem@gmail.com",
     instagramUrl: "https://www.instagram.com/un_sourire_pour_tissem",
+    tiktokUrl: "https://www.tiktok.com/@unsourirepourtissem?_r=1&_t=ZS-9BLHUdvaJCz",
     helloassoUrl: DEFAULT_HELLOASSO_URL,
     donationUrl: `${DEFAULT_HELLOASSO_URL}/collectes/100000-euros-pour-faire-grandir-les-sourires`,
     footerDescription:
