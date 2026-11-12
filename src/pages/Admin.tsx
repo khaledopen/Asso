@@ -3,7 +3,6 @@ import {
   ArrowDown,
   ArrowUp,
   CheckCircle2,
-  Download,
   ExternalLink,
   Eye,
   EyeOff,
@@ -22,7 +21,6 @@ import {
 import { useSiteContent } from "../context/ContentContext";
 import {
   DEFAULT_SITE_CONTENT,
-  mergeSiteContent,
   type ActionItem,
   type GalleryItem,
   type HelloAssoItem,
@@ -586,39 +584,6 @@ export default function Admin() {
     }
   };
 
-  const handleExportJson = () => {
-    const blob = new Blob([`${JSON.stringify(draft, null, 2)}\n`], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "content.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImportJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const parsed = JSON.parse(text) as Partial<SiteContent>;
-      setDraft(mergeSiteContent(parsed));
-      setDirty(true);
-      setFeedback({
-        type: "success",
-        text: "Fichier JSON importé dans l’éditeur. Cliquez sur « Enregistrer & Publier » pour le mettre en ligne.",
-      });
-    } catch {
-      setFeedback({
-        type: "error",
-        text: "Le fichier importé n’est pas un JSON valide.",
-      });
-    }
-  };
-
   const handleQuickGalleryUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -766,23 +731,6 @@ export default function Admin() {
           <button
             type="button"
             className="admin-btn-secondary"
-            onClick={handleExportJson}
-            title="Télécharger une sauvegarde JSON"
-          >
-            <Download size={15} /> Exporter
-          </button>
-          <label className="admin-btn-secondary admin-upload-btn">
-            <Upload size={15} /> Importer JSON
-            <input
-              type="file"
-              accept="application/json"
-              onChange={handleImportJson}
-              hidden
-            />
-          </label>
-          <button
-            type="button"
-            className="admin-btn-secondary"
             onClick={() => {
               setDraft(DEFAULT_SITE_CONTENT);
               setDirty(true);
@@ -815,11 +763,10 @@ export default function Admin() {
         <div className="admin-banner">
           <AlertCircle size={18} />
           <span>
-            <strong>GITHUB_TOKEN non configuré sur Vercel :</strong> vous pouvez
-            préparer vos modifications et cliquer sur « Exporter », mais pour
-            publier en 1 clic sur le site en ligne ajoutez{" "}
+            <strong>GITHUB_TOKEN non configuré sur Vercel :</strong> ajoutez{" "}
             <code>GITHUB_TOKEN</code> (droits Contents Read & Write sur{" "}
-            <code>khaledopen/Asso</code>) dans Vercel.
+            <code>khaledopen/Asso</code>) dans Vercel pour activer la
+            publication en 1 clic.
           </span>
         </div>
       )}
@@ -2626,3 +2573,4 @@ export default function Admin() {
     </div>
   );
 }
+
