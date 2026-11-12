@@ -293,9 +293,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const apiKey = process.env.BREVO_API_KEY?.trim();
-  const recipient = (
-    process.env.CONTACT_TO_EMAIL || DEFAULT_CONTACT_EMAIL
-  ).trim();
+  // Le destinataire est volontairement verrouillé pour éviter qu'une ancienne
+  // variable Vercel redirige les messages du formulaire vers une autre boîte.
+  const recipient = DEFAULT_CONTACT_EMAIL;
   const explicitSender = process.env.BREVO_SENDER_EMAIL?.trim();
   let effectiveSenderEmail = (
     explicitSender ||
